@@ -11,8 +11,8 @@ namespace RoleBot
 {
     public class Commands
     {
-        [Command("mention"), Description("Calls out the specified user"), Aliases("fetch", "hail")]
-        public async Task Mention(CommandContext ctx, [Description("Calls out the specified user")]
+        [Command("mention"), DSharpPlus.CommandsNext.Attributes.Description("Calls out the specified user"), Aliases("fetch", "hail")]
+        public async Task Mention(CommandContext ctx, [DSharpPlus.CommandsNext.Attributes.Description("Calls out the specified user")]
             DiscordMember member)
         {
             await ctx.TriggerTypingAsync();
@@ -33,10 +33,9 @@ namespace RoleBot
                 await ctx.RespondAsync($"You are summoned {member.Mention}");
         }
 
-        [Command("bet"), Description("presents the synonyms for the colloquial term \"bet\""),
+        [Command("bet"), DSharpPlus.CommandsNext.Attributes.Description("presents the synonyms for the colloquial term \"bet\""),
          Aliases("wager", "bargain")]
-        public async Task Bet(CommandContext ctx, [Description("presents the synonyms for the colloquial term \"bet\"")]
-            DiscordMember member)
+        public async Task Bet(CommandContext ctx)
         {
             await ctx.TriggerTypingAsync();
             String[] synonyms =
@@ -49,24 +48,30 @@ namespace RoleBot
             
             var rnd = new Random();
             
-            switch (rnd.Next(0,3))
+            switch (rnd.Next(0,4))
             {
                case 0:
-                   await ctx.RespondAsync($"{member.Mention} {synonyms[0]}");
+                   await ctx.RespondAsync($"{ctx.Member.Mention} {synonyms[0]}");
                    break;
                case 1:
-                   await ctx.RespondAsync($"{member.Mention} {synonyms[1]}");
+                   await ctx.RespondAsync($"{ctx.Member.Mention} {synonyms[1]}");
                    break;
                case 2:
-                   await ctx.RespondAsync($"{member.Mention} {synonyms[2]}");
+                   await ctx.RespondAsync($"{ctx.Member.Mention} {synonyms[2]}");
                    break;
                case 3:
-                   await ctx.RespondAsync($"{member.Mention} {synonyms[3]}");
+                   await ctx.RespondAsync($"{ctx.Member.Mention} {synonyms[3]}");
                    break;
                default:
-                   await ctx.RespondAsync($"you thot {member.Mention}");
+                   await ctx.RespondAsync($"you thot {ctx.Member.Mention}");
                    break;
             }
+        }
+
+        [Command("cleanup"), Description("Cleans up its own messages"), Aliases("clear", "purge")]
+        public async Task Clean(CommandContext ctx)
+        {
+            
         }
     }
 }
