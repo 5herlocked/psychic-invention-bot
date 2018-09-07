@@ -66,7 +66,6 @@ namespace RoleBot
 			
 			// Register the commands for usage with RoleBot
 			Commands.RegisterCommands<Commands>();
-			Commands.RegisterCommands<MemesGroup>();
 			Commands.SetHelpFormatter<HelpFormatter>();
 
 			// Set target Channel and message to track through ReactionRole duties
@@ -92,11 +91,8 @@ namespace RoleBot
 				var membersReacted = from discordUser in TargetMessage.GetReactionsAsync(e.Emoji).Result
 					select guild.GetMemberAsync(discordUser.Id).Result;
 
-				//filters members who need to be removed
-				var membersToRemove = guild.GetAllMembersAsync().Result.Except(membersReacted);
-
 				// Grants roles retroactively through the use of a switch based on the emote used
-				foreach (var member in membersToRemove)
+				foreach (var member in membersReacted)
 				{
 					switch (e.Emoji.Name)
 					{
@@ -123,10 +119,11 @@ namespace RoleBot
 				var membersReacted = (from reaction in e.Message.Reactions
 					from user in e.Message.GetReactionsAsync(e.Emoji).Result
 					select guild.GetMemberAsync(user.Id).Result).ToList();
-
+				
+				// filters members to remove
 				var membersToRemove = guildMembers.TakeWhile(member => !membersReacted.Contains(member)).ToList();
 
-				// filters members who need to be removed
+				// retroactively removes roles
 				foreach (var member in membersToRemove)
 				{
 					switch (e.Emoji.Name)
