@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Configuration;
 using System.Linq;
 using System.Threading.Tasks;
@@ -112,17 +113,18 @@ namespace RoleBot
 			if (e.Message.Equals(TargetMessage))
 			{
 				var guild = TargetChannel.Guild;
-
+				
 				// retro actively tries to remove roles (created in case bot goes offline)
 				var guildMembers = guild.GetAllMembersAsync().Result;
 
-				var membersReacted = (from reaction in e.Message.Reactions
-					from user in e.Message.GetReactionsAsync(e.Emoji).Result
-					select guild.GetMemberAsync(user.Id).Result).ToList();
-				
-				// filters members to remove
-				var membersToRemove = guildMembers.TakeWhile(member => !membersReacted.Contains(member)).ToList();
+				var membersReacted = from discordUser in TargetMessage.GetReactionsAsync(e.Emoji).Result
+					select guild.GetMemberAsync(discordUser.Id).Result;
 
+				// filters members to remove
+				var membersToRemove = from discordMember in guildMembers
+					where !membersReacted.Contains(discordMember)
+					select discordMember;
+				
 				// retroactively removes roles
 				foreach (var member in membersToRemove)
 				{
@@ -165,6 +167,12 @@ namespace RoleBot
 		{
 			e.Client.DebugLogger.LogMessage(LogLevel.Error, "Rolebot",
 				$"Exception Occured: {e.Exception.GetType()} {e.Exception.Message})", DateTime.Now);
+
+			if (!(e.Exception is AggregateException aex)) return Task.CompletedTask;
+			foreach (var iex in aex.InnerExceptions)
+			{
+				e.Client.DebugLogger.LogMessage(LogLevel.Error, "RoleBot", $"Inner Exceptions are: {iex.GetType()} {iex.Message}", DateTime.Now);
+			}
 
 			return Task.CompletedTask;
 		}
