@@ -11,8 +11,8 @@ namespace RoleBot
 {
     public class Commands
     {
-        [Command("mention"), DSharpPlus.CommandsNext.Attributes.Description("Calls out the specified user"), Aliases("fetch", "hail")]
-        public async Task Mention(CommandContext ctx, [DSharpPlus.CommandsNext.Attributes.Description("Calls out the specified user")]
+        [Command("mention"), Description("Calls out the specified user"), Aliases("fetch", "hail")]
+        public async Task Mention(CommandContext ctx, [Description("Calls out the specified user")]
             DiscordMember member)
         {
             await ctx.TriggerTypingAsync();
@@ -33,7 +33,7 @@ namespace RoleBot
                 await ctx.RespondAsync($"You are summoned {member.Mention}");
         }
 
-        [Command("bet"), DSharpPlus.CommandsNext.Attributes.Description("presents the synonyms for the colloquial term \"bet\""),
+        [Command("bet"), Description("presents the synonyms for the colloquial term \"bet\""),
          Aliases("wager", "bargain")]
         public async Task Bet(CommandContext ctx)
         {
@@ -69,9 +69,16 @@ namespace RoleBot
         }
 
         [Command("cleanup"), Description("Cleans up its own messages"), Aliases("clear", "purge")]
-        public async Task Clean(CommandContext ctx)
+        public async Task Clean(CommandContext ctx, int numberOfMessages)
         {
-            
+            var botMessages = from discordMessage in ctx.Channel.GetMessagesAsync(numberOfMessages).Result
+                select discordMessage;
+
+            var discordMessages = botMessages.ToList();
+            await ctx.Channel.DeleteMessagesAsync(discordMessages);
+            await ctx.TriggerTypingAsync();
+
+            await ctx.RespondAsync($"{ctx.Message.Author.Mention} has deleted the last {discordMessages.Count()} messages");
         }
     }
 }
