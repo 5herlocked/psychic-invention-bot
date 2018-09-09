@@ -68,7 +68,7 @@ namespace RoleBot
             }
         }
 
-        [Command("cleanup"), Description("Cleans up its own messages"), Aliases("clear", "purge")]
+        [Command("cleanup"), Description("Cleans up messages in the channel"), Aliases("clear", "purge")]
         public async Task Clean(CommandContext ctx, int numberOfMessages)
         {
             var botMessages = from discordMessage in ctx.Channel.GetMessagesAsync(numberOfMessages).Result
