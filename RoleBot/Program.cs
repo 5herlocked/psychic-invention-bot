@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Configuration;
 using System.Linq;
 using System.Threading.Tasks;
@@ -8,6 +9,7 @@ using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Exceptions;
 using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
+using DSharpPlus.Interactivity;
 
 namespace RoleBot
 {
@@ -17,8 +19,8 @@ namespace RoleBot
 		private CommandsNextModule Commands { get; set; }
 		private DiscordMessage TargetMessage { get; set; }
 		private DiscordChannel TargetChannel { get; set; }
-		//private List<DiscordRole> RolesToAssign { get; set; } // split from configuration file
-		//private List<DiscordEmoji> EmojisToAssign { get; set; } // split from configuration file
+		private List<DiscordRole> RolesToAssign { get; set; } // split from configuration file
+		private List<DiscordEmoji> EmojisToAssign { get; set; } // split from configuration file
 
 
 		private static void Main()
@@ -76,6 +78,18 @@ namespace RoleBot
 
 			Client.MessageReactionAdded += Reaction_Added;
 			Client.MessageReactionRemoved += Reaction_Removed;
+			
+			var roleId = ConfigurationManager.AppSettings.Get("rolesToAssign").Split(',');
+			foreach (var id in roleId)
+			{
+				RolesToAssign.Add(TargetChannel.Guild.GetRole(UInt64.Parse(id)));
+			}
+
+			var emoteId = ConfigurationManager.AppSettings.Get("emotesToRoles").Split(',');
+			foreach (var id in emoteId)
+			{
+				EmojisToAssign.Add(TargetChannel.Guild.GetEmojiAsync(UInt64.Parse(id)).Result);
+			}
 
 			await Client.ConnectAsync();
 			await Task.Delay(-1);

@@ -38,7 +38,7 @@ namespace RoleBot
         public async Task Bet(CommandContext ctx)
         {
             await ctx.TriggerTypingAsync();
-            String[] synonyms =
+            string[] synonyms =
             {
                 "bargain",
                 "wager",
