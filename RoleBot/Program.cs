@@ -18,8 +18,8 @@ namespace RoleBot
 		private CommandsNextModule Commands { get; set; }
 		private DiscordMessage TargetMessage { get; set; }
 		private DiscordChannel TargetChannel { get; set; }
-		//private List<DiscordRole> RolesToAssign { get; set; } // split from configuration file
-		//private List<DiscordEmoji> EmojisToAssign { get; set; } // split from configuration file
+		private List<DiscordRole> RolesToAssign { get; set; } // split from configuration file
+		private List<DiscordEmoji> EmojisToAssign { get; set; } // split from configuration file
 
 
 		private static void Main()
@@ -77,7 +77,22 @@ namespace RoleBot
 
 			Client.MessageReactionAdded += Reaction_Added;
 			Client.MessageReactionRemoved += Reaction_Removed;
+			
+			// assigns what emojis/roles are to be manipulated
+			var roleId = ConfigurationManager.AppSettings.Get("rolesToAssign").Split(',');
 
+			foreach (var id in roleId)
+			{
+				RolesToAssign.Add(TargetChannel.Guild.GetRole(UInt64.Parse(id)));
+			}
+
+			var emojiId = ConfigurationManager.AppSettings.Get("emotesToRoles").Split(',');
+
+			foreach (var id in emojiId)
+			{
+				EmojisToAssign.Add(TargetChannel.Guild.GetEmojiAsync(id).Result);
+			}
+			
 			await Client.ConnectAsync();
 			await Task.Delay(-1);
 		}
@@ -95,14 +110,10 @@ namespace RoleBot
 				// Grants roles retroactively through the use of a switch based on the emote used
 				foreach (var member in membersReacted)
 				{
-					switch (e.Emoji.Name)
+					for (var i = 0; i < EmojisToAssign.Count; i++)
 					{
-						case "nut":
-							await member.GrantRoleAsync(guild.GetRole(485989904132603927)); //nut role
-							break;
-						case "scientist":
-							await member.GrantRoleAsync(guild.GetRole(486006468034822164)); //scientist role
-							break;
+						if (e.Emoji.Equals(EmojisToAssign[i]))
+							await member.GrantRoleAsync(RolesToAssign[i]);
 					}
 				}
 			}
