@@ -90,7 +90,7 @@ namespace RoleBot
 
 			foreach (var id in emojiId)
 			{
-				EmojisToAssign.Add(TargetChannel.Guild.GetEmojiAsync(id).Result);
+				EmojisToAssign.Add(TargetChannel.Guild.GetEmojiAsync(UInt64.Parse(id)).Result);
 			}
 			
 			await Client.ConnectAsync();
