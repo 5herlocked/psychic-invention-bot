@@ -78,18 +78,6 @@ namespace RoleBot
 
 			Client.MessageReactionAdded += Reaction_Added;
 			Client.MessageReactionRemoved += Reaction_Removed;
-			
-			var roleId = ConfigurationManager.AppSettings.Get("rolesToAssign").Split(',');
-			foreach (var id in roleId)
-			{
-				RolesToAssign.Add(TargetChannel.Guild.GetRole(UInt64.Parse(id)));
-			}
-
-			var emoteId = ConfigurationManager.AppSettings.Get("emotesToRoles").Split(',');
-			foreach (var id in emoteId)
-			{
-				EmojisToAssign.Add(TargetChannel.Guild.GetEmojiAsync(UInt64.Parse(id)).Result);
-			}
 
 			await Client.ConnectAsync();
 			await Task.Delay(-1);
