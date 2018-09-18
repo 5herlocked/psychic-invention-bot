@@ -90,7 +90,7 @@ namespace RoleBot
 
 			foreach (var id in emojiId)
 			{
-				EmojisToAssign.Add(TargetChannel.Guild.GetEmojiAsync(UInt64.Parse(id)).Result);
+				EmojisToAssign.Add(DiscordEmoji.FromName(Client, id));
 			}
 			
 			await Client.ConnectAsync();
@@ -139,16 +139,9 @@ namespace RoleBot
 				// retroactively removes roles
 				foreach (var member in membersToRemove)
 				{
-					switch (e.Emoji.Name)
-					{
-						case "nut":
-							await member.RevokeRoleAsync(guild.GetRole(485989904132603927), "by choice"); // nut role
-							break;
-						case "scientist":
-							await member.RevokeRoleAsync(guild.GetRole(486006468034822164),
-								"by choice"); // scientist role
-							break;
-					}
+					for (var i = 0; i < EmojisToAssign.Count; i++)
+						if (e.Emoji.Equals(EmojisToAssign[i]))
+							await member.RevokeRoleAsync(RolesToAssign[i]);
 				}
 			}
 		}
