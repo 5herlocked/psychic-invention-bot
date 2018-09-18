@@ -79,14 +79,15 @@ namespace RoleBot
 			Client.MessageReactionAdded += Reaction_Added;
 			Client.MessageReactionRemoved += Reaction_Removed;
 			
-			var roleId = ConfigurationManager.AppSettings.Get("rolesToAssign").Split(',');
+			var roleId = ConfigurationManager.AppSettings.Get("rolesToAssign").Trim().Split(',');
 			RolesToAssign = new List<DiscordRole>();
 			foreach (var id in roleId)
 			{
-				RolesToAssign.Add(TargetChannel.Guild.GetRole(UInt64.Parse(id)));
+				var toAssign = TargetChannel.Guild.GetRole(UInt64.Parse(id));
+				RolesToAssign.Add(toAssign);
 			}
 
-			var emojiId = ConfigurationManager.AppSettings.Get("emotesToRoles").Split(',');
+			var emojiId = ConfigurationManager.AppSettings.Get("emotesToRoles").Trim().Split(',');
 			EmojisToAssign = new List<DiscordEmoji>();
 			foreach (var id in emojiId)
 			{
