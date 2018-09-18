@@ -9,6 +9,7 @@ using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Exceptions;
 using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
+using DSharpPlus.Interactivity;
 
 namespace RoleBot
 {
@@ -24,8 +25,8 @@ namespace RoleBot
 
 		private static void Main()
 		{
-			var program = new Program();
-			program.RunBotAsync().GetAwaiter().GetResult();
+			var proc = new Program();
+			proc.RunBotAsync().GetAwaiter().GetResult();
 		}
 
 		private async Task RunBotAsync()
@@ -78,16 +79,15 @@ namespace RoleBot
 			Client.MessageReactionAdded += Reaction_Added;
 			Client.MessageReactionRemoved += Reaction_Removed;
 			
-			// assigns what emojis/roles are to be manipulated
 			var roleId = ConfigurationManager.AppSettings.Get("rolesToAssign").Split(',');
-
+			RolesToAssign = new List<DiscordRole>();
 			foreach (var id in roleId)
 			{
 				RolesToAssign.Add(TargetChannel.Guild.GetRole(UInt64.Parse(id)));
 			}
 
 			var emojiId = ConfigurationManager.AppSettings.Get("emotesToRoles").Split(',');
-
+			EmojisToAssign = new List<DiscordEmoji>();
 			foreach (var id in emojiId)
 			{
 				EmojisToAssign.Add(DiscordEmoji.FromName(Client, id));
@@ -139,9 +139,16 @@ namespace RoleBot
 				// retroactively removes roles
 				foreach (var member in membersToRemove)
 				{
-					for (var i = 0; i < EmojisToAssign.Count; i++)
-						if (e.Emoji.Equals(EmojisToAssign[i]))
-							await member.RevokeRoleAsync(RolesToAssign[i]);
+					switch (e.Emoji.Name)
+					{
+						case "nut":
+							await member.RevokeRoleAsync(guild.GetRole(485989904132603927), "by choice"); // nut role
+							break;
+						case "scientist":
+							await member.RevokeRoleAsync(guild.GetRole(486006468034822164),
+								"by choice"); // scientist role
+							break;
+					}
 				}
 			}
 		}
