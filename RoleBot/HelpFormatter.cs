@@ -10,7 +10,7 @@ using DSharpPlus.CommandsNext;
 
 namespace RoleBot
 {
-    public class HelpFormatter : IHelpFormatter
+    internal class HelpFormatter : IHelpFormatter
     {
         private StringBuilder HelpBuilder { get; }
 
