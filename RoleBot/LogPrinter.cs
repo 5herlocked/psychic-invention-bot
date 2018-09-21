@@ -21,7 +21,7 @@ namespace RoleBot
 			Bot.RolesToAssign = new List<DiscordRole>();
 			foreach (var id in roleId)
 			{
-				var toAssign = Bot.TargetChannel.Guild.GetRole(ulong.Parse(id));
+				var toAssign = Bot.TargetChannel.Guild.GetRole(UInt64.Parse(id));
 				Bot.RolesToAssign.Add(toAssign);
 			}
 			
@@ -30,7 +30,7 @@ namespace RoleBot
 			Bot.EmojisToAssign = new List<DiscordEmoji>();
 			foreach (var id in emojiId)
 			{
-				var toAssign = Bot.TargetChannel.Guild.GetEmojiAsync(ulong.Parse(id)).Result;
+				var toAssign = Bot.TargetChannel.Guild.GetEmojiAsync(UInt64.Parse(id)).Result;
 				Bot.EmojisToAssign.Add(toAssign);
 			}
 			

@@ -64,10 +64,10 @@ namespace RoleBot
 			Commands.SetHelpFormatter<HelpFormatter>();
 
 			// Set target Channel and message to track through ReactionRole duties
-			TargetChannel = Client.GetChannelAsync(ulong.Parse(ConfigurationManager.AppSettings.Get("targetChannel")))
+			TargetChannel = Client.GetChannelAsync(UInt64.Parse(ConfigurationManager.AppSettings.Get("targetChannel")))
 				.Result;
 			TargetMessage = TargetChannel
-				.GetMessageAsync(ulong.Parse(ConfigurationManager.AppSettings.Get("targetMessage"))).Result;
+				.GetMessageAsync(UInt64.Parse(ConfigurationManager.AppSettings.Get("targetMessage"))).Result;
 
 			Client.MessageReactionAdded += Reaction_Added;
 			Client.MessageReactionRemoved += Reaction_Removed;
