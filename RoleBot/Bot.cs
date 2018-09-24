@@ -88,13 +88,9 @@ namespace RoleBot
 
 				// Grants roles retroactively through the use of a switch based on the emote used
 				foreach (var member in membersReacted)
-				{
 					for (var i = 0; i < EmojisToAssign.Count; i++)
-					{
 						if (e.Emoji.Equals(EmojisToAssign[i]))
 							await member.GrantRoleAsync(RolesToAssign[i]);
-					}
-				}
 			}
 		}
 
@@ -117,11 +113,9 @@ namespace RoleBot
 				
 				// retroactively removes roles
 				foreach (var member in membersToRemove)
-				{
 					for (var i = 0; i < EmojisToAssign.Count; i++)
 						if (e.Emoji.Equals((EmojisToAssign[i])))
 							await member.RevokeRoleAsync(RolesToAssign[i]);
-				}
 			}
 		}
 	}

@@ -13,24 +13,24 @@ namespace RoleBot
     {
         [Command("mention"), Description("Calls out the specified user"), Aliases("fetch", "hail")]
         public async Task Mention(CommandContext ctx, [Description("Calls out the specified user")]
-            DiscordMember member)
+            DiscordMember person)
         {
             await ctx.TriggerTypingAsync();
 
-            if (member.Equals(Bot.Client.GetUserAsync(397454954757095424).Result))
-                await ctx.RespondAsync($"Get your ass down here Ni:b::b:a {member.Mention}");
+            if (person.Equals(Bot.Client.GetUserAsync(397454954757095424).Result))
+                await ctx.RespondAsync($"Get your ass down here Ni:b::b:a {person.Mention}");
 
-            else if (member.Equals(Bot.Client.GetUserAsync(251505256662302731).Result))
-                await ctx.RespondAsync($"Fetch Reinforcements {member.Mention}");
+            else if (person.Equals(Bot.Client.GetUserAsync(251505256662302731).Result))
+                await ctx.RespondAsync($"Fetch Reinforcements {person.Mention}");
 
-            else if (member.Equals(Bot.Client.GetUserAsync(446831227450949656).Result))
-                await ctx.RespondAsync($"Leave your laptop outside {member.Mention}");
+            else if (person.Equals(Bot.Client.GetUserAsync(446831227450949656).Result))
+                await ctx.RespondAsync($"Leave your laptop outside {person.Mention}");
             
-            else if (member.Equals(Bot.Client.GetUserAsync(400798130091851776).Result))
-                await ctx.RespondAsync($"We need a whale with dwarfism {member.Mention}");
+            else if (person.Equals(Bot.Client.GetUserAsync(400798130091851776).Result))
+                await ctx.RespondAsync($"We need a whale with dwarfism {person.Mention}");
 
             else
-                await ctx.RespondAsync($"You are summoned {member.Mention}");
+                await ctx.RespondAsync($"You are summoned {person.Mention}");
         }
 
         [Command("bet"), Description("presents the synonyms for the colloquial term \"bet\""),
@@ -48,22 +48,22 @@ namespace RoleBot
             
             var rnd = new Random();
             
-            switch (rnd.Next(0,4))
+            switch (rnd.Next(0,3))
             {
                case 0:
-                   await ctx.RespondAsync($"{ctx.Member.Mention} {synonyms[0]}");
+                   await ctx.RespondAsync($"{ctx.User.Mention} {synonyms[0]}");
                    break;
                case 1:
-                   await ctx.RespondAsync($"{ctx.Member.Mention} {synonyms[1]}");
+                   await ctx.RespondAsync($"{ctx.User.Mention} {synonyms[1]}");
                    break;
                case 2:
-                   await ctx.RespondAsync($"{ctx.Member.Mention} {synonyms[2]}");
+                   await ctx.RespondAsync($"{ctx.User.Mention} {synonyms[2]}");
                    break;
                case 3:
-                   await ctx.RespondAsync($"{ctx.Member.Mention} {synonyms[3]}");
+                   await ctx.RespondAsync($"{ctx.User.Mention} {synonyms[3]}");
                    break;
                default:
-                   await ctx.RespondAsync($"you thot {ctx.Member.Mention}");
+                   await ctx.RespondAsync($"you thot {ctx.User.Mention}");
                    break;
             }
         }
