@@ -16,7 +16,7 @@ namespace RoleBot
 		// Client Ready
 		internal static Task Client_Ready(ReadyEventArgs e)
 		{
-			// Gets roles to be assigned/revoked
+			// Gets roles to be watched
 			var roleId = ConfigurationManager.AppSettings.Get("rolesToAssign").Trim().Split(',');
 			Bot.RolesToAssign = new List<DiscordRole>();
 			foreach (var id in roleId)
