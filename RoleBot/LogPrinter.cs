@@ -16,24 +16,6 @@ namespace RoleBot
 		// Client Ready
 		internal static Task Client_Ready(ReadyEventArgs e)
 		{
-			// Gets roles to be watched
-			var roleId = ConfigurationManager.AppSettings.Get("rolesToAssign").Trim().Split(',');
-			Bot.RolesToAssign = new List<DiscordRole>();
-			foreach (var id in roleId)
-			{
-				var toAssign = Bot.TargetChannel.Guild.GetRole(UInt64.Parse(id));
-				Bot.RolesToAssign.Add(toAssign);
-			}
-			
-			// Gets emotes to watch
-			var emojiId = ConfigurationManager.AppSettings.Get("emotesToRoles").Trim().Split(',');
-			Bot.EmojisToAssign = new List<DiscordEmoji>();
-			foreach (var id in emojiId)
-			{
-				var toAssign = Bot.TargetChannel.Guild.GetEmojiAsync(UInt64.Parse(id)).Result;
-				Bot.EmojisToAssign.Add(toAssign);
-			}
-			
 			// log - client ready
 			e.Client.DebugLogger.LogMessage(LogLevel.Info, "RoleBot", "Client is ready to process events.",
 				DateTime.Now);
