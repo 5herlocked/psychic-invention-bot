@@ -63,41 +63,21 @@ namespace RoleBot
 
 			return Task.CompletedTask;
 		}
-
-		// Client has successfully executed a command
-		internal static Task Commands_CommandExecuted(CommandExecutionEventArgs e)
-		{
-			e.Context.Client.DebugLogger.LogMessage(LogLevel.Info, "RoleBot",
-				$"{e.Context.User.Username} successfully executed '{e.Command.QualifiedName}'", DateTime.Now);
-
-			return Task.CompletedTask;
-		}
-
-		// Client has failed to execute a command
-		internal static async Task Commands_CommandError(CommandErrorEventArgs e)
-		{
-			e.Context.Client.DebugLogger.LogMessage(LogLevel.Error, "Rolebot",
-				$"{e.Context.User.Username} attempted to execute '{e.Command.QualifiedName ?? "<no message>"}' but it threw: {e.Exception.GetType()}: {e.Exception.Message ?? "<no message>"}",
-				DateTime.Now);
-
-			if (e.Exception is ChecksFailedException)
-			{
-				// yes, the user lacks required permissions, 
-				// let them know
-
-				var emoji = DiscordEmoji.FromName(e.Context.Client, ":no_entry:");
-
-				// let's wrap the response into an embed
-				var embed = new DiscordEmbedBuilder
-				{
-					Title = "Access denied",
-					Description = $"{emoji} You do not have the permissions required to execute this command.",
-					Color = new DiscordColor(0xFF0000) // red
-					// there are also some pre-defined colors available
-					// as static members of the DiscordColor struct
-				};
-				await e.Context.RespondAsync("", embed: embed);
-			}
-		}
+		
+	    // Client has assigned a role
+	    internal static Task Role_Assigned(MessageReactionAddEventArgs e, DiscordMember member, DiscordRole role)
+	    {
+		    e.Client.DebugLogger.LogMessage(LogLevel.Info, "Rolebot", $"User: {member} Role Assigned: {role}", DateTime.Now);
+		    
+		    return Task.CompletedTask;
+	    }
+	
+	    // Client has revoked a role
+	    internal static Task Role_Revoked(MessageReactionRemoveEventArgs e, DiscordMember member, DiscordRole role)
+	    {
+		    e.Client.DebugLogger.LogMessage(LogLevel.Info, "Rolebot", $"User: {member} Role Revoked: {role}", DateTime.Now);
+		    
+		    return Task.CompletedTask;
+	    }
     }
 }

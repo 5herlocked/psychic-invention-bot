@@ -5,18 +5,14 @@ using System.Linq;
 using System.Threading.Tasks;
 
 using DSharpPlus;
-using DSharpPlus.CommandsNext;
-using DSharpPlus.CommandsNext.Exceptions;
 using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
-using DSharpPlus.Interactivity;
 
 namespace RoleBot
 {
 	internal class Bot
 	{
-		internal static DiscordClient Client { get; private set; }
-		private static CommandsNextModule Commands { get; set; }
+		private static DiscordClient Client { get; set; }
 		private static DiscordMessage TargetMessage { get; set; }
 		internal static DiscordChannel TargetChannel { get; private set; }
 		internal static List<DiscordRole> RolesToAssign { get; set; } // split from configuration file
@@ -41,27 +37,6 @@ namespace RoleBot
 			Client.Ready += LogPrinter.Client_Ready;
 			Client.GuildAvailable += LogPrinter.Guild_Available;
 			Client.ClientErrored += LogPrinter.Client_Error;
-
-			var commandsConfig = new CommandsNextConfiguration
-			{
-				// sets the prefix for messages to be treated as commands
-				StringPrefix = ConfigurationManager.AppSettings.Get("commandPrefix"),
-				// sets the ability of the bot to send DMS to people in the server
-				EnableDms = true,
-				// allows Bot-Mention to be a valid command prefix
-				EnableMentionPrefix = true
-			};
-
-			// connects discord client to commands module
-			Commands = Client.UseCommandsNext(commandsConfig);
-
-			// making Console a little more lively with debug-style
-			Commands.CommandExecuted += LogPrinter.Commands_CommandExecuted;
-			Commands.CommandErrored += LogPrinter.Commands_CommandError;
-			
-			// Register the commands for usage with RoleBot
-			Commands.RegisterCommands<Commands>();
-			Commands.SetHelpFormatter<HelpFormatter>();
 
 			// Set target Channel and message to track through ReactionRole duties
 			TargetChannel = Client.GetChannelAsync(UInt64.Parse(ConfigurationManager.AppSettings.Get("targetChannel")))
@@ -90,7 +65,10 @@ namespace RoleBot
 				foreach (var member in membersReacted)
 					for (var i = 0; i < EmojisToAssign.Count; i++)
 						if (e.Emoji.Equals(EmojisToAssign[i]))
+						{
 							await member.GrantRoleAsync(RolesToAssign[i]);
+							await LogPrinter.Role_Assigned(e, member, RolesToAssign[i]);
+						}
 			}
 		}
 
@@ -114,8 +92,11 @@ namespace RoleBot
 				// retroactively removes roles
 				foreach (var member in membersToRemove)
 					for (var i = 0; i < EmojisToAssign.Count; i++)
-						if (e.Emoji.Equals((EmojisToAssign[i])))
+						if (e.Emoji.Equals(EmojisToAssign[i]))
+						{
 							await member.RevokeRoleAsync(RolesToAssign[i]);
+							await LogPrinter.Role_Revoked(e, member, RolesToAssign[i]);
+						}
 			}
 		}
 	}
