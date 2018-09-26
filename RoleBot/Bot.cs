@@ -12,12 +12,12 @@ namespace RoleBot
 {
 	internal class Bot
 	{
-		private static DiscordClient Client { get; set; }
-		private static DiscordMessage TargetMessage { get; set; }
-		internal static DiscordChannel TargetChannel { get; private set; }
+		internal static DiscordClient Client { get; set; }
+		internal static DiscordMessage TargetMessage { get; set; }
+		internal static DiscordChannel TargetChannel { get; set; }
 		internal static List<DiscordRole> RolesToAssign { get; set; } // split from configuration file
 		internal static List<DiscordEmoji> EmojisToAssign { get; set; } // split from configuration file
-		private static readonly XDocument Config = new XDocument("config.xml");
+		internal static readonly XDocument Config = XDocument.Load("config.xml");
 
 		internal static async Task RunBotAsync()
 		{
@@ -26,7 +26,7 @@ namespace RoleBot
 				var clientConfig = (new DiscordConfiguration
 				{
 					AutoReconnect = true,
-					Token = Config.Root.Element("Token")?.ToString(),
+					Token = Config.Root.Element("Token")?.Value,
 					TokenType = TokenType.Bot,
 
 					LogLevel = LogLevel.Debug,
@@ -43,9 +43,9 @@ namespace RoleBot
 			Client.ClientErrored += LogPrinter.Client_Error;
 
 			// Set target Channel and message to track through ReactionRole duties
-			TargetChannel = Client.GetChannelAsync(UInt64.Parse(Config.Root?.Element("TargetChannel")?.ToString())).Result;
-			TargetMessage = TargetChannel.GetMessageAsync(UInt64.Parse(Config.Root?.Element("TargetMessage")?.ToString())).Result;
-
+			TargetChannel = Client.GetChannelAsync(UInt64.Parse(Config.Root?.Element("TargetChannel")?.Value)).Result;
+			TargetMessage = TargetChannel.GetMessageAsync(UInt64.Parse(Config.Root?.Element("TargetMessage")?.Value)).Result;
+			
 			Client.MessageReactionAdded += Reaction_Added;
 			Client.MessageReactionRemoved += Reaction_Removed;
 			
@@ -53,32 +53,36 @@ namespace RoleBot
 			await Task.Delay(-1);
 		}
 
-		internal static void RefreshConfig()
-		{
-			// Set target Channel and message to track through ReactionRole duties
-			TargetChannel = Client.GetChannelAsync(UInt64.Parse(Config.Root?.Element("TargetChannel")?.ToString())).Result;
-			TargetMessage = TargetChannel.GetMessageAsync(UInt64.Parse(Config.Root?.Element("TargetMessage")?.ToString())).Result;
-
-			// Gets roles to be watched
-			var roleId = Config.Root?.Element("Roles")?.ToString().Trim().Split(",");
-			RolesToAssign = new List<DiscordRole>();
-			if (roleId != null)
-				foreach (var id in roleId)
-				{
-					var toAssign = TargetChannel.Guild.GetRole(UInt64.Parse(id));
-					RolesToAssign.Add(toAssign);
-				}
-
-			// Gets emotes to watch
-			var emojiId = Config.Root?.Element("Emotes")?.ToString().Trim().Split(",");
-			EmojisToAssign = new List<DiscordEmoji>();
-			if (emojiId != null)
-				foreach (var id in emojiId)
-				{
-					var toAssign = TargetChannel.Guild.GetEmojiAsync(UInt64.Parse(id)).Result;
-					EmojisToAssign.Add(toAssign);
-				}
-		}
+//		internal static void RefreshConfig()
+//		{
+//			// Set target Channel and message to track through ReactionRole duties
+//			TargetChannel = Client.GetChannelAsync(UInt64.Parse(Config.Root?.Element("TargetChannel")?.Value)).Result;
+//			TargetMessage = TargetChannel.GetMessageAsync(UInt64.Parse(Config.Root?.Element("TargetMessage")?.Value)).Result;
+//
+//			// Gets roles to be watched
+//			var roleId = Config.Root?.Element("Roles")?.Value.Split(",");
+//			RolesToAssign = new List<DiscordRole>();
+//			if (roleId == null) return;
+//			{
+//				foreach (var id in roleId)
+//				{
+//					var toAssign = TargetChannel.Guild.GetRole(UInt64.Parse(id));
+//					RolesToAssign.Add(toAssign);
+//				}	
+//			}
+//
+//			// Gets emotes to watch
+//			var emojiId = Config.Root?.Element("Emotes")?.Value.Split(",");
+//			EmojisToAssign = new List<DiscordEmoji>();
+//			if (emojiId == null) return;
+//			{
+//				foreach (var id in emojiId)
+//				{
+//					var toAssign = TargetChannel.Guild.GetEmojiAsync(UInt64.Parse(id)).Result;
+//					EmojisToAssign.Add(toAssign);
+//				}
+//			}
+//		}
 
 		private static async Task Reaction_Added(MessageReactionAddEventArgs e)
 		{

@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 
 namespace RoleBot
@@ -8,14 +9,15 @@ namespace RoleBot
         {
             Bot.RunBotAsync().GetAwaiter().GetResult();
             
-            FileSystemWatcher configWatcher = new FileSystemWatcher("config.xml", ".xml");
+            FileSystemWatcher configWatcher = new FileSystemWatcher("config.xml", "*.xml");
             
             configWatcher.Changed += OnChanged;
         }
 
         private static void OnChanged(object sender, FileSystemEventArgs e)
         {
-            Bot.RefreshConfig();
+            //Bot.RefreshConfig();
+            throw new NotImplementedException();
         }
     }
 }
