@@ -8,16 +8,12 @@ namespace RoleBot
         internal static void Main()
         {
             Bot.RunBotAsync().GetAwaiter().GetResult();
-            
-            FileSystemWatcher configWatcher = new FileSystemWatcher("config.xml", "*.xml");
-            
+
+            var configWatcher = new FileSystemWatcher("config.xml", "*.xml");
+
             configWatcher.Changed += OnChanged;
         }
 
-        private static void OnChanged(object sender, FileSystemEventArgs e)
-        {
-            //Bot.RefreshConfig();
-            throw new NotImplementedException();
-        }
+        private static void OnChanged(object sender, FileSystemEventArgs e) => Bot.RefreshConfig();
     }
 }
