@@ -13,13 +13,13 @@ namespace RoleBot
     internal class Bot
     {
         private static readonly XDocument Config = XDocument.Load("config.xml");
-        private static DiscordClient Client { get; set; }
-        private static DiscordMessage TargetMessage { get; set; }
-        private static DiscordChannel TargetChannel { get; set; }
-        private static List<DiscordRole> RolesToAssign { get; set; } // split from configuration file
-        private static List<DiscordEmoji> EmojisToAssign { get; set; } // split from configuration file
+        internal static DiscordClient Client { get; set; }
+        internal static DiscordMessage TargetMessage { get; set; }
+        internal static DiscordChannel TargetChannel { get; set; }
+        internal static List<DiscordRole> RolesToAssign { get; set; } // split from configuration file
+        internal static List<DiscordEmoji> EmojisToAssign { get; set; } // split from configuration file
 
-        internal static async Task RunBotAsync()
+        internal static async Task<string> RunBotAsync()
         {
             if (Config.Root != null)
             {
@@ -51,6 +51,8 @@ namespace RoleBot
 
             await Client.ConnectAsync();
             await Task.Delay(-1);
+
+            return "Bot done";
         }
 
         internal static Task RefreshConfig()
@@ -130,6 +132,7 @@ namespace RoleBot
                     for (var i = 0; i < EmojisToAssign.Count; i++)
                         if (e.Emoji.Equals(EmojisToAssign[i]))
                         {
+                            if (!member.Roles.Contains(RolesToAssign[i])) continue;
                             await member.RevokeRoleAsync(RolesToAssign[i]);
                             await LogPrinter.Role_Revoked(e, member, RolesToAssign[i]);
                         }
