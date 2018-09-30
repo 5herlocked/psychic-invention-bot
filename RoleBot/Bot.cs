@@ -14,10 +14,10 @@ namespace RoleBot
     {
         private static readonly XDocument Config = XDocument.Load("config.xml");
         internal static DiscordClient Client { get; set; }
-        internal static DiscordMessage TargetMessage { get; set; }
-        internal static DiscordChannel TargetChannel { get; set; }
-        internal static List<DiscordRole> RolesToAssign { get; set; } // split from configuration file
-        internal static List<DiscordEmoji> EmojisToAssign { get; set; } // split from configuration file
+        private static DiscordMessage TargetMessage { get; set; }
+        private static DiscordChannel TargetChannel { get; set; }
+        private static List<DiscordRole> RolesToAssign { get; set; } // split from configuration file
+        private static List<DiscordEmoji> EmojisToAssign { get; set; } // split from configuration file
 
         internal static async Task<string> RunBotAsync()
         {
