@@ -42,27 +42,6 @@ namespace RoleBot
             Client.GuildAvailable += LogPrinter.Guild_Available;
             Client.ClientErrored += LogPrinter.Client_Error;
             
-            var commandsConfig = new CommandsNextConfiguration
-            {
-                // sets the prefix for messages to be treated as commands
-                StringPrefix = Config.Root?.Element("CommandPrefix")?.Value,
-                // sets the ability of the bot to send DMS to people in the server
-                EnableDms = true,
-                // allows Bot-Mention to be a valid command prefix
-                EnableMentionPrefix = true
-            };
-
-            // connects discord client to commands module
-            Commands = Client.UseCommandsNext(commandsConfig);
-
-            // making Console a little more lively with debug-style
-            Commands.CommandExecuted += LogPrinter.Commands_CommandExecuted;
-            Commands.CommandErrored += LogPrinter.Commands_CommandError;
-			
-            // Register the commands for usage with RoleBot
-            Commands.RegisterCommands<Commands>();
-            Commands.SetHelpFormatter<HelpFormatter>();
-
             // Set target Channel and message to track through ReactionRole duties
             TargetChannel = Client.GetChannelAsync(ulong.Parse(Config.Root?.Element("TargetChannel")?.Value)).Result;
             TargetMessage = TargetChannel.GetMessageAsync(ulong.Parse(Config.Root?.Element("TargetMessage")?.Value))
