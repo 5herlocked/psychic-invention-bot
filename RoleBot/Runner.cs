@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Reflection;
 using System.Threading.Tasks;
 using DSharpPlus;
 
@@ -13,9 +14,9 @@ namespace RoleBot
         {
             var bot = Bot.RunBotAsync();
             
-            var commandLineArgs = Environment.GetCommandLineArgs();
+            var assemblyLocation = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
 
-            _configWatcher = new FileSystemWatcher(commandLineArgs[1], "config.xml")
+            _configWatcher = new FileSystemWatcher(assemblyLocation, "config.xml")
             {
                 NotifyFilter = NotifyFilters.LastAccess | NotifyFilters.LastWrite |
                                NotifyFilters.FileName | NotifyFilters.DirectoryName,
