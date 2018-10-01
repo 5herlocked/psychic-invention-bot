@@ -28,6 +28,7 @@ namespace RoleBot
             _configWatcher.EnableRaisingEvents = true;
             
             Bot.Client.DebugLogger.LogMessage(LogLevel.Info, "Rolebot", $"Watching file: {_configWatcher.Path}", DateTime.Now);
+            Bot.Client.DebugLogger.LogMessage(LogLevel.Info, "Rolebot", $"Log file : {Bot.Path}", DateTime.Now);
 
             var getBot = await bot;
         }

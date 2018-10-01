@@ -170,6 +170,7 @@ namespace RoleBot
         {
             if (Messages.Contains(e.Message))
             {
+                // gets the index used to access the right guild
                 var index = Messages.FindIndex(a => a.Id == e.Message.Id);
                 var guild = Guilds[index];
 
