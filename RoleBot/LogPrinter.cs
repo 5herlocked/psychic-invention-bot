@@ -2,9 +2,8 @@ using System;
 using System.Threading.Tasks;
 using System.IO;
 using System.Reflection;
+
 using DSharpPlus;
-using DSharpPlus.CommandsNext;
-using DSharpPlus.CommandsNext.Exceptions;
 using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
 
