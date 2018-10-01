@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 
@@ -18,6 +21,11 @@ namespace RoleBot
         private static DiscordChannel TargetChannel { get; set; }
         private static List<DiscordRole> RolesToAssign { get; set; } // split from configuration file
         private static List<DiscordEmoji> EmojisToAssign { get; set; } // split from configuration file
+        
+        // instance vars for logs
+        private static readonly string Path = System.IO.Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + $"log_{DateTimeOffset.Now}.txt"; //log file path
+        private static readonly FileStream FileStream = new FileStream(Path, FileMode.Append); //file stream for printing
+        private static StreamWriter _log = new StreamWriter(FileStream);
 
         internal static async Task<string> RunBotAsync()
         {
@@ -45,9 +53,15 @@ namespace RoleBot
             Client.MessageReactionAdded += Reaction_Added;
             Client.MessageReactionRemoved += Reaction_Removed;
 
+            Client.DebugLogger.LogMessageReceived += (sender, e) =>
+            {
+                if (!File.Exists(Path)) File.CreateText(Path);
+                _log.WriteLineAsync($"[{e.Timestamp.ToString(CultureInfo.CurrentCulture)}][{e.Application}][{e.Level}][{e.Message}]");
+            };
+
             await Client.ConnectAsync();
             await Task.Delay(-1);
-
+            
             return "Bot done";
         }
 

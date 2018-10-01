@@ -1,7 +1,5 @@
 using System;
 using System.Threading.Tasks;
-using System.IO;
-using System.Reflection;
 
 using DSharpPlus;
 using DSharpPlus.Entities;
@@ -11,7 +9,6 @@ namespace RoleBot
 {
     public class LogPrinter
     {
-        private static readonly string _path = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "log.txt";
         // Log Maintenance
         // Client Ready
         internal static Task Client_Ready(ReadyEventArgs e)
