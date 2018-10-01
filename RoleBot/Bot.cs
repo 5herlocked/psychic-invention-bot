@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -10,6 +11,7 @@ using System.Xml.Linq;
 using DSharpPlus;
 using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
+using DSharpPlus.Interactivity;
 
 namespace RoleBot
 {
@@ -17,15 +19,16 @@ namespace RoleBot
     {
         private static readonly XDocument Config = XDocument.Load("config.xml");
         internal static DiscordClient Client { get; private set; }
-        private static DiscordMessage TargetMessage { get; set; }
-        private static DiscordChannel TargetChannel { get; set; }
-        private static List<DiscordRole> RolesToAssign { get; set; } // split from configuration file
-        private static List<DiscordEmoji> EmojisToAssign { get; set; } // split from configuration file
+        private static List<DiscordGuild> Guilds { get; set; }
+        private static List<DiscordMessage> Messages { get; set; }
+        private static List<DiscordChannel> Channels { get; set; }
+        private static List<List<DiscordRole>> Roles { get; set; } // split from configuration file
+        private static List<List<DiscordGuildEmoji>> Emotes { get; set; } // split from configuration file
         
         // instance vars for logs
-        private static readonly string Path = System.IO.Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + $"log_{DateTimeOffset.Now}.txt"; //log file path
-        private static readonly FileStream FileStream = new FileStream(Path, FileMode.Append); //file stream for printing
-        private static StreamWriter _log = new StreamWriter(FileStream);
+        private static readonly string Path = System.IO.Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + $"/log.txt"; //log file path
+        private static FileStream FileStream; //file stream for printing
+        private static StreamWriter Log;
 
         internal static async Task<string> RunBotAsync()
         {
@@ -53,10 +56,13 @@ namespace RoleBot
             Client.MessageReactionAdded += Reaction_Added;
             Client.MessageReactionRemoved += Reaction_Removed;
 
+            // Writing log to file
             Client.DebugLogger.LogMessageReceived += (sender, e) =>
             {
                 if (!File.Exists(Path)) File.CreateText(Path);
-                _log.WriteLineAsync($"[{e.Timestamp.ToString(CultureInfo.CurrentCulture)}][{e.Application}][{e.Level}][{e.Message}]");
+                FileStream = new FileStream(Path, FileMode.Append);
+                Log = new StreamWriter(FileStream);
+                Log.WriteLineAsync($"[{e.Timestamp.ToString(CultureInfo.CurrentCulture)}][{e.Application}][{e.Level}][{e.Message}]");
             };
 
             await Client.ConnectAsync();
@@ -67,32 +73,65 @@ namespace RoleBot
 
         internal static Task RefreshConfig()
         {
-            // Set target Channel and message to track through ReactionRole duties
-            TargetChannel = Client.GetChannelAsync(ulong.Parse(Config.Root?.Element("TargetChannel")?.Value)).Result;
-            TargetMessage = TargetChannel.GetMessageAsync(ulong.Parse(Config.Root?.Element("TargetMessage")?.Value))
-                .Result;
-
-            // Gets roles to be watched
-            var roleId = Config.Root?.Element("Roles")?.Value.Split(",");
-            RolesToAssign = new List<DiscordRole>();
-            if (roleId == null) return Task.FromException(new Exception("Role unrecognised"));
+            // Sets Guilds to observe
+            var guildId = Config.Root?.Element("Guilds")?.Value.Split(",");
+            Guilds = new List<DiscordGuild>();
+            if (guildId == null) return Task.FromException(new Exception("Pleases set Guilds"));
             {
-                foreach (var id in roleId)
+                foreach (var id in guildId)
                 {
-                    var toAssign = TargetChannel.Guild.GetRole(ulong.Parse(id));
-                    RolesToAssign.Add(toAssign);
+                    var toWatch = Client.GetGuildAsync(UInt64.Parse(id)).Result;
+                    Guilds.Add(toWatch);
                 }
             }
-
-            // Gets emotes to watch
-            var emojiId = Config.Root?.Element("Emotes")?.Value.Split(",");
-            EmojisToAssign = new List<DiscordEmoji>();
-            if (emojiId == null) return Task.FromException(new Exception("Emote unrecognised"));
+            
+            // Sets Channels to observe
+            var channelId = Config.Root?.Element("Channels")?.Value.Split(",");
+            Channels = new List<DiscordChannel>();
+            if (channelId == null) return Task.FromException(new Exception("Please set Channels"));
             {
-                foreach (var id in emojiId)
+                for (var i = 0; i < channelId.Length; i++)
                 {
-                    var toAssign = TargetChannel.Guild.GetEmojiAsync(ulong.Parse(id)).Result;
-                    EmojisToAssign.Add(toAssign);
+                    var toWatch = Guilds[i].GetChannel(UInt64.Parse(channelId[i]));
+                    Channels.Add(toWatch);
+                }
+            }
+            
+            // Sets Messages to observe
+            var messageId = Config.Root?.Element("Messages")?.Value.Split(",");
+            Messages = new List<DiscordMessage>();
+            if (messageId == null) return Task.FromException(new Exception("Please set Messages"));
+            {
+                for (var i = 0; i < messageId.Length; i++)
+                {
+                    var toWatch = Channels[i].GetMessageAsync(UInt64.Parse(messageId[i])).Result;
+                    Messages.Add(toWatch);
+                }
+            }
+            
+            // Sets Roles to manage
+            var roleId = Config.Root?.Element("Roles")?.Elements("Channel").ToArray();
+            Roles = new List<List<DiscordRole>>();
+            if (roleId == null) return Task.FromException(new Exception("Please set Roles"));
+            {
+                for (var i = 0; i < roleId.Length; i++)
+                {
+                    var channelRoles = roleId[i].Value.Split(",");
+                    var channelRole = channelRoles.Select(id => Guilds[i].GetRole(UInt64.Parse(id))).ToList();
+                    Roles.Add(channelRole);
+                }
+            }
+            
+            // Sets Emojis to watch
+            var emoteId = Config.Root?.Element("Emotes")?.Elements("Channel").ToArray();
+            Emotes = new List<List<DiscordGuildEmoji>>();
+            if (emoteId == null) return Task.FromException(new Exception("Please set Emotes"));
+            {
+                for (var i = 0; i < emoteId.Length; i++)
+                {
+                    var channelEmotes = roleId[i].Value.Split(",");
+                    var channelEmote = channelEmotes.Select(id => Guilds[i].GetEmojiAsync(UInt64.Parse(id)).Result).ToList();
+                    Emotes.Add(channelEmote);
                 }
             }
 
@@ -101,35 +140,36 @@ namespace RoleBot
 
         private static async Task Reaction_Added(MessageReactionAddEventArgs e)
         {
-            if (e.Message.Equals(TargetMessage))
+            if (Messages.Contains(e.Message))
             {
-                var guild = TargetChannel.Guild;
-
-                // all members who reacted
-                var membersReacted = from discordUser in TargetMessage.GetReactionsAsync(e.Emoji).Result
+                var index = Messages.FindIndex(a => a.Id == e.Message.Id);
+                var guild = Guilds[index];
+                var membersReacted = from discordUser in Messages[index].GetReactionsAsync(e.Emoji).Result
                     select guild.GetMemberAsync(discordUser.Id).Result;
 
                 // Grants roles retroactively through the use of a switch based on the emote used
                 foreach (var member in membersReacted)
-                    for (var i = 0; i < EmojisToAssign.Count; i++)
-                        if (e.Emoji.Equals(EmojisToAssign[i]))
+                    for (var i = 0; i < Emotes[index].Count; i++)
+                        if (e.Emoji.Id.Equals(UInt64.Parse(Emotes[index][i])))
                         {
-                            await member.GrantRoleAsync(RolesToAssign[i]);
-                            await LogPrinter.Role_Assigned(e, member, RolesToAssign[i]);
+                            await member.GrantRoleAsync(Roles[index][i]);
+                            await LogPrinter.Role_Assigned(e, member, Roles[index][i]);
                         }
+
             }
         }
 
         private static async Task Reaction_Removed(MessageReactionRemoveEventArgs e)
         {
-            if (e.Message.Equals(TargetMessage))
+            if (Messages.Contains(e.Message))
             {
-                var guild = TargetChannel.Guild;
+                var index = Messages.FindIndex(a => a.Id == e.Message.Id);
+                var guild = Guilds[index];
 
                 // retro actively tries to remove roles (created in case bot goes offline)
                 var guildMembers = guild.GetAllMembersAsync().Result;
 
-                var membersReacted = from discordUser in TargetMessage.GetReactionsAsync(e.Emoji).Result
+                var membersReacted = from discordUser in Messages[index].GetReactionsAsync(e.Emoji).Result
                     select guild.GetMemberAsync(discordUser.Id).Result;
 
                 // filters members to remove
@@ -139,12 +179,12 @@ namespace RoleBot
 
                 // retroactively removes roles
                 foreach (var member in membersToRemove)
-                    for (var i = 0; i < EmojisToAssign.Count; i++)
-                        if (e.Emoji.Equals(EmojisToAssign[i]))
+                    for (var i = 0; i < Emotes.Count; i++)
+                        if (e.Emoji.Id.Equals(UInt64.Parse(Emotes[index][i])))
                         {
-                            if (!member.Roles.Contains(RolesToAssign[i])) continue;
-                            await member.RevokeRoleAsync(RolesToAssign[i]);
-                            await LogPrinter.Role_Revoked(e, member, RolesToAssign[i]);
+                            if (!member.Roles.Contains(Roles[index][i])) continue;
+                            await member.RevokeRoleAsync(Roles[index][i]);
+                            await LogPrinter.Role_Revoked(e, member, Roles[index][i]);
                         }
             }
         }
