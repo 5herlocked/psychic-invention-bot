@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Configuration;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -11,7 +10,6 @@ using System.Xml.Linq;
 using DSharpPlus;
 using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
-using DSharpPlus.Interactivity;
 
 namespace RoleBot
 {
@@ -23,10 +21,10 @@ namespace RoleBot
         private static List<DiscordMessage> Messages { get; set; }
         private static List<DiscordChannel> Channels { get; set; }
         private static List<List<DiscordRole>> Roles { get; set; } // split from configuration file
-        private static List<List<DiscordGuildEmoji>> Emotes { get; set; } // split from configuration file
+        private static List<List<DiscordEmoji>> Emotes { get; set; } // split from configuration file
         
         // instance vars for logs
-        private static readonly string Path = System.IO.Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + $"/log.txt"; //log file path
+        internal static readonly string Path = System.IO.Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "/log.txt"; //log file path
         private static FileStream FileStream; //file stream for printing
         private static StreamWriter Log;
 
@@ -62,9 +60,10 @@ namespace RoleBot
                 if (!File.Exists(Path)) File.CreateText(Path);
                 FileStream = new FileStream(Path, FileMode.Append);
                 Log = new StreamWriter(FileStream);
+                
                 Log.WriteLineAsync($"[{e.Timestamp.ToString(CultureInfo.CurrentCulture)}][{e.Application}][{e.Level}][{e.Message}]");
             };
-
+            
             await Client.ConnectAsync();
             await Task.Delay(-1);
             
@@ -124,13 +123,13 @@ namespace RoleBot
             
             // Sets Emojis to watch
             var emoteId = Config.Root?.Element("Emotes")?.Elements("Channel").ToArray();
-            Emotes = new List<List<DiscordGuildEmoji>>();
+            Emotes = new List<List<DiscordEmoji>>();
             if (emoteId == null) return Task.FromException(new Exception("Please set Emotes"));
             {
                 for (var i = 0; i < emoteId.Length; i++)
                 {
-                    var channelEmotes = roleId[i].Value.Split(",");
-                    var channelEmote = channelEmotes.Select(id => Guilds[i].GetEmojiAsync(UInt64.Parse(id)).Result).ToList();
+                    var channelEmotes = emoteId[i].Value.Split(",");
+                    var channelEmote = channelEmotes.Select(id => Guilds[i].GetEmojiAsync(UInt64.Parse(id)).Result).Cast<DiscordEmoji>().ToList();
                     Emotes.Add(channelEmote);
                 }
             }
@@ -144,14 +143,22 @@ namespace RoleBot
             {
                 var index = Messages.FindIndex(a => a.Id == e.Message.Id);
                 var guild = Guilds[index];
-                var membersReacted = from discordUser in Messages[index].GetReactionsAsync(e.Emoji).Result
+                var guildMembers = guild.GetAllMembersAsync().Result;
+                
+                // gets the members who've reacted
+                var membersReacted = from discordUser in e.Message.GetReactionsAsync(e.Emoji).Result
                     select guild.GetMemberAsync(discordUser.Id).Result;
+                
+                var membersToAssign = from discordMember in guildMembers
+                    where membersReacted.Contains(discordMember)
+                    select discordMember;
 
-                // Grants roles retroactively through the use of a switch based on the emote used
+                // Grants roles retroactively
                 foreach (var member in membersReacted)
                     for (var i = 0; i < Emotes[index].Count; i++)
-                        if (e.Emoji.Id.Equals(UInt64.Parse(Emotes[index][i])))
+                        if (e.Emoji.Equals(Emotes[index][i]))
                         {
+                            if (member.Roles.Contains(Roles[index][i])) continue;
                             await member.GrantRoleAsync(Roles[index][i]);
                             await LogPrinter.Role_Assigned(e, member, Roles[index][i]);
                         }
@@ -169,7 +176,7 @@ namespace RoleBot
                 // retro actively tries to remove roles (created in case bot goes offline)
                 var guildMembers = guild.GetAllMembersAsync().Result;
 
-                var membersReacted = from discordUser in Messages[index].GetReactionsAsync(e.Emoji).Result
+                var membersReacted = from discordUser in e.Message.GetReactionsAsync(e.Emoji).Result
                     select guild.GetMemberAsync(discordUser.Id).Result;
 
                 // filters members to remove
@@ -180,7 +187,7 @@ namespace RoleBot
                 // retroactively removes roles
                 foreach (var member in membersToRemove)
                     for (var i = 0; i < Emotes.Count; i++)
-                        if (e.Emoji.Id.Equals(UInt64.Parse(Emotes[index][i])))
+                        if (e.Emoji.Equals(Emotes[index][i]))
                         {
                             if (!member.Roles.Contains(Roles[index][i])) continue;
                             await member.RevokeRoleAsync(Roles[index][i]);
