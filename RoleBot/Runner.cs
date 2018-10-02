@@ -6,7 +6,7 @@ using DSharpPlus;
 
 namespace RoleBot
 {
-    internal class Runner
+    internal static class Runner
     {
         private static FileSystemWatcher _configWatcher;
             

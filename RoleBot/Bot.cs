@@ -13,7 +13,7 @@ using DSharpPlus.EventArgs;
 
 namespace RoleBot
 {
-    internal class Bot
+    internal static class Bot
     {
         private static readonly XDocument Config = XDocument.Load("config.xml");
         internal static DiscordClient Client { get; private set; }

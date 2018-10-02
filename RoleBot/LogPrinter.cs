@@ -7,7 +7,7 @@ using DSharpPlus.EventArgs;
 
 namespace RoleBot
 {
-    public class LogPrinter
+    public static class LogPrinter
     {
         // Log Maintenance
         // Client Ready
