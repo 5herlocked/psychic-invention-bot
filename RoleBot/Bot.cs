@@ -194,7 +194,7 @@ namespace RoleBot
 
                 // retroactively removes roles
                 foreach (var member in membersToRemove)
-                    for (var i = 0; i < Emotes.Count; i++)
+                    for (var i = 0; i < Emotes[index].Count; i++)
                         if (e.Emoji.Equals(Emotes[index][i]))
                         {
                             if (!member.Roles.Contains(Roles[index][i])) continue;

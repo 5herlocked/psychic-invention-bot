@@ -29,7 +29,7 @@ namespace RoleBot
 
             _configWatcher.EnableRaisingEvents = true;
             
-            Bot.Client.DebugLogger.LogMessage(LogLevel.Info, "Rolebot", $"Watching file: {_configWatcher.Path}", DateTime.Now); // Telling user what file is being watched as config
+            Bot.Client.DebugLogger.LogMessage(LogLevel.Info, "Rolebot", $"Watching folder: {_configWatcher.Path}, Watching file: {_configWatcher.Filter}", DateTime.Now); // Telling user what file is being watched as config
             Bot.Client.DebugLogger.LogMessage(LogLevel.Info, "Rolebot", $"Log file : {Bot.Path}", DateTime.Now); // Declaring where the log file is
             
             // To allow for continuous watching the Config file in an async environment
