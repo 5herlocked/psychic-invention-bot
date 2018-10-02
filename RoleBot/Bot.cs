@@ -25,8 +25,8 @@ namespace RoleBot
         
         // instance vars for logs
         internal static readonly string Path = System.IO.Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "/log.txt"; //log file path
-        private static FileStream FileStream; //file stream for printing
-        private static StreamWriter Log;
+        private static FileStream _fileStream; //file stream for printing
+        private static StreamWriter _log;
 
         internal static async Task<string> RunBotAsync()
         {
@@ -58,10 +58,10 @@ namespace RoleBot
             Client.DebugLogger.LogMessageReceived += (sender, e) =>
             {
                 if (!File.Exists(Path)) File.CreateText(Path);
-                FileStream = new FileStream(Path, FileMode.Append);
-                Log = new StreamWriter(FileStream);
+                _fileStream = new FileStream(Path, FileMode.Append);
+                _log = new StreamWriter(_fileStream);
                 
-                Log.WriteLineAsync($"[{e.Timestamp.ToString(CultureInfo.CurrentCulture)}][{e.Application}][{e.Level}][{e.Message}]");
+                _log.WriteLineAsync($"[{e.Timestamp.ToString(CultureInfo.CurrentCulture)}][{e.Application}][{e.Level}][{e.Message}]");
             };
             
             await Client.ConnectAsync();
