@@ -14,6 +14,7 @@ namespace RoleBot
         {
             var bot = Bot.RunBotAsync();
             
+            // Config needs to be placed in the same file as the assembly
             var assemblyLocation = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
 
             _configWatcher = new FileSystemWatcher(assemblyLocation, "config.xml")
@@ -27,10 +28,11 @@ namespace RoleBot
 
             _configWatcher.EnableRaisingEvents = true;
             
-            Bot.Client.DebugLogger.LogMessage(LogLevel.Info, "Rolebot", $"Watching file: {_configWatcher.Path}", DateTime.Now);
-            Bot.Client.DebugLogger.LogMessage(LogLevel.Info, "Rolebot", $"Log file : {Bot.Path}", DateTime.Now);
-
-            var getBot = await bot;
+            Bot.Client.DebugLogger.LogMessage(LogLevel.Info, "Rolebot", $"Watching file: {_configWatcher.Path}", DateTime.Now); // Telling user what file is being watched as config
+            Bot.Client.DebugLogger.LogMessage(LogLevel.Info, "Rolebot", $"Log file : {Bot.Path}", DateTime.Now); // Declaring where the log file is
+            
+            // To allow for continuous watching the Config file in an async environment
+            var unused = await bot;
         }
 
         private static void OnChanged(object sender, FileSystemEventArgs e)
