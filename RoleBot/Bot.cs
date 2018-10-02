@@ -143,15 +143,10 @@ namespace RoleBot
             {
                 var index = Messages.FindIndex(a => a.Id == e.Message.Id);
                 var guild = Guilds[index];
-                var guildMembers = guild.GetAllMembersAsync().Result;
                 
                 // gets the members who've reacted
                 var membersReacted = from discordUser in e.Message.GetReactionsAsync(e.Emoji).Result
                     select guild.GetMemberAsync(discordUser.Id).Result;
-                
-                var membersToAssign = from discordMember in guildMembers
-                    where membersReacted.Contains(discordMember)
-                    select discordMember;
 
                 // Grants roles retroactively
                 foreach (var member in membersReacted)
