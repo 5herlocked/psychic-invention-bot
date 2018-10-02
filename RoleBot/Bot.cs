@@ -15,16 +15,20 @@ namespace RoleBot
 {
     internal static class Bot
     {
-        private static readonly XDocument Config = XDocument.Load("config.xml");
-        internal static DiscordClient Client { get; private set; }
-        private static List<DiscordGuild> Guilds { get; set; }
-        private static List<DiscordMessage> Messages { get; set; }
-        private static List<DiscordChannel> Channels { get; set; }
-        private static List<List<DiscordRole>> Roles { get; set; } // split from configuration file
-        private static List<List<DiscordEmoji>> Emotes { get; set; } // split from configuration file
+        private static readonly XDocument Config = XDocument.Load("config.xml"); // Config file loaded
+        
+        internal static DiscordClient Client { get; private set; } // Discord API Client
+        
+        private static List<DiscordGuild> Guilds { get; set; } // List of Guilds for multiple
+        private static List<DiscordMessage> Messages { get; set; } // List of messages to watch across multiple guilds
+        private static List<DiscordChannel> Channels { get; set; } // List of channels to watch across multiple guilds
+        
+        private static List<List<DiscordRole>> Roles { get; set; } // 2D List of Roles for multiple guilds
+        private static List<List<DiscordEmoji>> Emotes { get; set; } // 2D List of Emotes to Watch for multiple guilds
         
         // instance vars for logs
-        internal static readonly string Path = System.IO.Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "/log.txt"; //log file path
+        internal static readonly string Path =
+            System.IO.Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "/log.txt"; //log file path
         private static FileStream _fileStream; //file stream for printing
         private static StreamWriter _log;
 
@@ -61,7 +65,8 @@ namespace RoleBot
                 _fileStream = new FileStream(Path, FileMode.Append);
                 _log = new StreamWriter(_fileStream);
                 
-                _log.WriteLineAsync($"[{e.Timestamp.ToString(CultureInfo.CurrentCulture)}][{e.Application}][{e.Level}][{e.Message}]");
+                _log.WriteLineAsync(
+                    $"[{e.Timestamp.ToString(CultureInfo.CurrentCulture)}][{e.Application}][{e.Level}][{e.Message}]");
             };
             
             await Client.ConnectAsync();
@@ -116,6 +121,8 @@ namespace RoleBot
                 for (var i = 0; i < roleId.Length; i++)
                 {
                     var channelRoles = roleId[i].Value.Split(",");
+                    
+                    // Linq Gets Role from uID using select
                     var channelRole = channelRoles.Select(id => Guilds[i].GetRole(UInt64.Parse(id))).ToList();
                     Roles.Add(channelRole);
                 }
@@ -129,7 +136,10 @@ namespace RoleBot
                 for (var i = 0; i < emoteId.Length; i++)
                 {
                     var channelEmotes = emoteId[i].Value.Split(",");
-                    var channelEmote = channelEmotes.Select(id => Guilds[i].GetEmojiAsync(UInt64.Parse(id)).Result).Cast<DiscordEmoji>().ToList();
+                    
+                    // Linq gets list of Discord Guild Emoji based on uid and casts selected as DiscordEmojis
+                    var channelEmote = channelEmotes.Select(id => Guilds[i].GetEmojiAsync(UInt64.Parse(id)).Result)
+                        .Cast<DiscordEmoji>().ToList();
                     Emotes.Add(channelEmote);
                 }
             }
@@ -141,6 +151,7 @@ namespace RoleBot
         {
             if (Messages.Contains(e.Message))
             {
+                // gets the reference of the guild, message and channel to be used from config file
                 var index = Messages.FindIndex(a => a.Id == e.Message.Id);
                 var guild = Guilds[index];
                 
@@ -165,7 +176,7 @@ namespace RoleBot
         {
             if (Messages.Contains(e.Message))
             {
-                // gets the index used to access the right guild
+                // gets the index used to access the right guild/message/channel
                 var index = Messages.FindIndex(a => a.Id == e.Message.Id);
                 var guild = Guilds[index];
 

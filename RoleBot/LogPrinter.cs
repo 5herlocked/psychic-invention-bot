@@ -43,7 +43,7 @@ namespace RoleBot
         // Client has assigned a role
         internal static Task Role_Assigned(MessageReactionAddEventArgs e, DiscordMember member, DiscordRole role)
         {
-            e.Client.DebugLogger.LogMessage(LogLevel.Info, "Rolebot", $"User: {member} Role Assigned: {role}",
+            e.Client.DebugLogger.LogMessage(LogLevel.Debug, "Rolebot", $"User: {member} Role Assigned: {role}",
                 DateTime.Now);
 
             return Task.CompletedTask;
@@ -52,7 +52,7 @@ namespace RoleBot
         // Client has revoked a role
         internal static Task Role_Revoked(MessageReactionRemoveEventArgs e, DiscordMember member, DiscordRole role)
         {
-            e.Client.DebugLogger.LogMessage(LogLevel.Info, "Rolebot", $"User: {member} Role Revoked: {role}",
+            e.Client.DebugLogger.LogMessage(LogLevel.Debug, "Rolebot", $"User: {member} Role Revoked: {role}",
                 DateTime.Now);
 
             return Task.CompletedTask;
