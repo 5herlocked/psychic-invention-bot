@@ -1,5 +1,5 @@
 # RoleBot
-This is the backend for a Discord Bot designed to manage revoke and assign roles based on reactions emotes to a certain message. Written in `C#` and using the (DSharp+ API)[https://dsharpplus.emzi0767.com], it's ready to be deployed on any device supporting the `.NET Core`.
+This is the backend for a Discord Bot designed to manage revoke and assign roles based on reactions emotes to a certain message. Written in `C#` and using the [DSharp+ API](https://dsharpplus.emzi0767.com), it's ready to be deployed on any device supporting the `.NET Core`.
 
 ## Getting Started
 These instructions will get you a copy of the source code ready to check, edit and debug on your own machine. See deployment for notes on how to deploy on any system running the `.NET Runtime`.
@@ -8,7 +8,7 @@ These instructions will get you a copy of the source code ready to check, edit a
 To view the Solution, you will need either JetBrains Rider or Microsoft Visual Studio.
 
 #### Using Rider:
-Make sure to have the .NET Core SDK installed beforehand which can be done from (.NET Core SDK) [https://www.microsoft.com/net/learn/dotnet/hello-world-tutorial], there are tutorials available for each separate platform.
+Make sure to have the .NET Core SDK installed beforehand which can be done from [.NET Core SDK] (https://www.microsoft.com/net/learn/dotnet/hello-world-tutorial), there are tutorials available for each separate platform.
 
 #### Using Visual Studio:
 When using Visual Studio, you will have to launch the `Visual Studio Installer` and get the `.NET Core Cross Platform Development` workload.
