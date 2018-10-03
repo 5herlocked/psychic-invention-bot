@@ -8,7 +8,7 @@ These instructions will get you a copy of the source code ready to check, edit a
 To view the Solution, you will need either JetBrains Rider or Microsoft Visual Studio.
 
 #### Using Rider:
-Make sure to have the .NET Core SDK installed beforehand which can be done from [.NET Core SDK] (https://www.microsoft.com/net/learn/dotnet/hello-world-tutorial), there are tutorials available for each separate platform.
+Make sure to have the .NET Core SDK installed beforehand which can be done from [.NET Core SDK ](https://www.microsoft.com/net/learn/dotnet/hello-world-tutorial), there are tutorials available for each separate platform.
 
 #### Using Visual Studio:
 When using Visual Studio, you will have to launch the `Visual Studio Installer` and get the `.NET Core Cross Platform Development` workload.
