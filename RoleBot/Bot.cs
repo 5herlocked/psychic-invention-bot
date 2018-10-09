@@ -1,10 +1,8 @@
 ﻿// Author: Shardul Vaidya
 using System;
 using System.Collections.Generic;
-using System.Globalization;
-using System.IO;
 using System.Linq;
-using System.Reflection;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 
@@ -27,14 +25,22 @@ namespace RoleBot
         private static List<List<DiscordRole>> Roles { get; set; } // 2D List of Roles for multiple guilds
         private static List<List<DiscordEmoji>> Emotes { get; set; } // 2D List of Emotes to Watch for multiple guilds
         
+        private static readonly ManualResetEvent QuitEvent = new ManualResetEvent(false);
+        
         // instance vars for logs
-        internal static readonly string Path =
-            System.IO.Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "/log.txt"; //log file path
-        private static FileStream _fileStream; //file stream for printing
-        private static StreamWriter _log;
+//        internal static readonly string Path =
+//            System.IO.Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + $"/\"log{DateTime.UtcNow}.txt\""; //log file path
+//        private static FileStream _fileStream; //file stream for printing
+//        private static StreamWriter _log;
 
         internal static async Task<string> RunBotAsync()
         {
+            Console.CancelKeyPress += (sender, args) =>
+            {
+                QuitEvent.Set();
+                args.Cancel = true;
+            };
+            
             if (Config.Root != null)
             {
                 var clientConfig = new DiscordConfiguration
@@ -60,18 +66,18 @@ namespace RoleBot
             Client.MessageReactionRemoved += Reaction_Removed;
 
             // Writing log to file
-            Client.DebugLogger.LogMessageReceived += (sender, e) =>
-            {
-                if (!File.Exists(Path)) File.CreateText(Path);
-                _fileStream = new FileStream(Path, FileMode.Append);
-                _log = new StreamWriter(_fileStream);
-                
-                _log.WriteLineAsync(
-                    $"[{e.Timestamp.ToString(CultureInfo.CurrentCulture)}][{e.Application}][{e.Level}][{e.Message}]");
-            };
+//            Client.DebugLogger.LogMessageReceived += (sender, e) =>
+//            {
+//                if (!File.Exists(Path)) File.CreateText(Path);
+//                _fileStream = new FileStream(Path, FileMode.Append);
+//                _log = new StreamWriter(_fileStream);
+//                
+//                _log.WriteLineAsync(
+//                    $"[{e.Timestamp.ToString(CultureInfo.CurrentCulture)}][{e.Application}][{e.Level}][{e.Message}]");
+//            };
             
             await Client.ConnectAsync();
-            await Task.Delay(-1);
+            QuitEvent.WaitOne();
             
             return "Bot done";
         }
@@ -138,7 +144,7 @@ namespace RoleBot
                 {
                     var channelEmotes = emoteId[i].Value.Split(",");
                     
-                    // Linq gets list of Discord Guild Emoji based on uid and casts selected as DiscordEmojis
+                    // Linq gets list of Discord Guild Emotes based on uid and casts selected as DiscordEmojis
                     var channelEmote = channelEmotes.Select(id => Guilds[i].GetEmojiAsync(UInt64.Parse(id)).Result)
                         .Cast<DiscordEmoji>().ToList();
                     Emotes.Add(channelEmote);
