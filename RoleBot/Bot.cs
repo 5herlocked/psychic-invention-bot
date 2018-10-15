@@ -114,21 +114,20 @@ namespace RoleBot
         {
             var root = Config.Root;
 
-            if (root != null)
+            if (root == null) return Task.FromException(new NullReferenceException("Looks like config is empty"));
+            foreach (var roles in root.Elements())
             {
-                foreach (var roles in root.Elements())
-                {
-                    var guild = Client.GetGuildAsync(UInt64.Parse(roles.Element("Guild")?.Value)).Result;
-                    var channel = guild.GetChannel(UInt64.Parse(roles.Element("Channel")?.Value));
-                    var message = channel.GetMessageAsync(UInt64.Parse(roles.Element("Message")?.Value));
-                    var emoji = guild.GetEmojiAsync(UInt64.Parse(roles.Element("Emoji")?.Value))
+                var guild = Client.GetGuildAsync(UInt64.Parse(roles.Element("Guild")?.Value)).Result;
+                var channel = guild.GetChannel(UInt64.Parse(roles.Element("Channel")?.Value));
+                var message = channel.GetMessageAsync(UInt64.Parse(roles.Element("Message")?.Value)).Result;
+                var emoji = (DiscordEmoji)(guild.GetEmojiAsync(UInt64.Parse(roles.Element("Emoji")?.Value)).Result);
+                var role = guild.GetRole(UInt64.Parse(roles.Element("Role")?.Value));
                     
-                    RolesToWatch.Add(new RoleWatch());
-                }
-
-                var commandsFlag = root?.Element("Commands")?.ToString().ToLower();
-                if (commandsFlag != null) CommandsFlag = commandsFlag.Equals("true");
+                RolesToWatch.Add(new RoleWatch(guild, channel, message, emoji, role));
             }
+
+            var commandsFlag = root?.Element("Commands")?.ToString().ToLower();
+            if (commandsFlag != null) CommandsFlag = commandsFlag.Equals("true");
 
             return Task.CompletedTask;
         }
@@ -199,7 +198,8 @@ namespace RoleBot
         internal static Task UpdateConfigFile()
         {
             // root of the XML file
-            var root = Config.Root;
+            
+            // use a for loop to do the thang with i corresponding to the elements obtained from root.elements()
             
             Config.Save(Assembly.GetExecutingAssembly().Location + "config.xml");
 
