@@ -2,11 +2,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 
 using DSharpPlus;
+using DSharpPlus.CommandsNext;
 using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
 
@@ -19,11 +21,15 @@ namespace RoleBot
         internal static DiscordClient Client { get; private set; } // Discord API Client
         
         private static List<DiscordGuild> Guilds { get; set; } // List of Guilds for multiple
-        private static List<DiscordMessage> Messages { get; set; } // List of messages to watch across multiple guilds
-        private static List<DiscordChannel> Channels { get; set; } // List of channels to watch across multiple guilds
+        internal static List<DiscordMessage> Messages { get; set; } // List of messages to watch across multiple guilds
+        internal static List<DiscordChannel> Channels { get; set; } // List of channels to watch across multiple guilds
         
-        private static List<List<DiscordRole>> Roles { get; set; } // 2D List of Roles for multiple guilds
-        private static List<List<DiscordEmoji>> Emotes { get; set; } // 2D List of Emotes to Watch for multiple guilds
+        internal static List<List<DiscordRole>> Roles { get; set; } // 2D List of Roles for multiple guilds
+        internal static List<List<DiscordEmoji>> Emotes { get; set; } // 2D List of Emotes to Watch for multiple guilds
+        
+        private static bool CommandsFlag { get; set; } // Flag to enable or disable commands
+        
+        private static CommandsNextModule Commands { get; set; }
         
         private static readonly ManualResetEvent QuitEvent = new ManualResetEvent(false);
         
@@ -56,6 +62,29 @@ namespace RoleBot
                 Client = new DiscordClient(clientConfig);
             }
 
+            if (CommandsFlag)
+            {
+                var commandsConfig = new CommandsNextConfiguration
+                {
+                    StringPrefix = "r!",
+
+                    EnableDms = true,
+
+                    EnableMentionPrefix = true
+                };
+            
+                // Command Modules and construction
+                Commands = Client.UseCommandsNext(commandsConfig);
+            
+                // command events
+                Commands.CommandExecuted += LogPrinter.CommandExecuted;
+                Commands.CommandErrored += LogPrinter.CommandErred;
+            
+                // registering the commands
+                Commands.RegisterCommands<Commands>();
+                Commands.SetHelpFormatter<HelpFormatter>();    
+            }
+            
             // logs before bot is live
             Client.Ready += LogPrinter.Client_Ready;
             Client.GuildAvailable += LogPrinter.Guild_Available;
@@ -78,6 +107,10 @@ namespace RoleBot
             
             await Client.ConnectAsync();
             QuitEvent.WaitOne();
+            
+            Client.DebugLogger.LogMessage(LogLevel.Critical, "RoleBot", "End Signal Received Bot Terminating", DateTime.UtcNow);
+            
+            await UpdateConfigFile();
             
             return "Bot done";
         }
@@ -151,6 +184,9 @@ namespace RoleBot
                 }
             }
 
+            var commandsFlag = Config.Root?.Element("Commands")?.ToString().ToLower();
+            if (commandsFlag != null) CommandsFlag = commandsFlag.Equals("true");
+
             return Task.CompletedTask;
         }
 
@@ -208,6 +244,39 @@ namespace RoleBot
                             await LogPrinter.Role_Revoked(e, member, Roles[index][i]);
                         }
             }
+        }
+        
+        // updates config files whenever needed
+        internal static Task UpdateConfigFile()
+        {
+            // root of the XML file
+            var root = Config.Root;
+            
+            // updating channels
+            var channels = root?.Element("Channels");
+            if (channels != null) channels.Value = Channels.Select(chn => chn.Id).ToString();
+            
+            // updating roles
+            var role = root?.Element("Roles");
+            for (var i = 0; i < Roles.Count; i++)
+            {
+                var guildSpec = role?.Elements().ToList();
+
+                if (guildSpec != null) guildSpec[i].Value = Roles[i].Select(c => c.Id).ToString();
+            }
+            
+            // updating emotes
+            var emotes = root?.Element("Emotes");
+            for (var i = 0; i < Emotes.Count; i++)
+            {
+                var guildSpec = role?.Elements().ToList();
+
+                if (guildSpec != null) guildSpec[i].Value = Emotes[i].Select(c => c.Id).ToString();
+            }
+
+            Config.Save(Assembly.GetExecutingAssembly().Location + "config.xml");
+
+            return Task.CompletedTask;
         }
     }
 }
