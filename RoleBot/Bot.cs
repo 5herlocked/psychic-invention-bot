@@ -20,12 +20,7 @@ namespace RoleBot
         
         internal static DiscordClient Client { get; private set; } // Discord API Client
         
-        private static List<DiscordGuild> Guilds { get; set; } // List of Guilds for multiple
-        internal static List<DiscordMessage> Messages { get; set; } // List of messages to watch across multiple guilds
-        internal static List<DiscordChannel> Channels { get; set; } // List of channels to watch across multiple guilds
-        
-        internal static List<List<DiscordRole>> Roles { get; set; } // 2D List of Roles for multiple guilds
-        internal static List<List<DiscordEmoji>> Emotes { get; set; } // 2D List of Emotes to Watch for multiple guilds
+        internal static List<RoleWatch> RolesToWatch { get; set; } // Roles To Watch
         
         private static bool CommandsFlag { get; set; } // Flag to enable or disable commands
         
