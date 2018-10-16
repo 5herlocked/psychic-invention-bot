@@ -86,7 +86,7 @@ namespace RoleBot
         {
             // Sets Guilds to observe
             var guildId = Config.Root?.Element("Guilds")?.Value.Split(",");
-            Guilds = new List<DiscordGuild>();
+            Guilds.Clear();
             if (guildId == null) return Task.FromException(new Exception("Pleases set Guilds"));
             {
                 foreach (var id in guildId)
@@ -98,7 +98,7 @@ namespace RoleBot
             
             // Sets Channels to observe
             var channelId = Config.Root?.Element("Channels")?.Value.Split(",");
-            Channels = new List<DiscordChannel>();
+            Channels.Clear();
             if (channelId == null) return Task.FromException(new Exception("Please set Channels"));
             {
                 for (var i = 0; i < channelId.Length; i++)
@@ -110,7 +110,7 @@ namespace RoleBot
             
             // Sets Messages to observe
             var messageId = Config.Root?.Element("Messages")?.Value.Split(",");
-            Messages = new List<DiscordMessage>();
+            Messages.Clear();
             if (messageId == null) return Task.FromException(new Exception("Please set Messages"));
             {
                 for (var i = 0; i < messageId.Length; i++)
@@ -122,7 +122,7 @@ namespace RoleBot
             
             // Sets Roles to manage
             var roleId = Config.Root?.Element("Roles")?.Elements("Channel").ToArray();
-            Roles = new List<List<DiscordRole>>();
+            Roles.Clear();
             if (roleId == null) return Task.FromException(new Exception("Please set Roles"));
             {
                 for (var i = 0; i < roleId.Length; i++)
@@ -137,7 +137,7 @@ namespace RoleBot
             
             // Sets Emojis to watch
             var emoteId = Config.Root?.Element("Emotes")?.Elements("Channel").ToArray();
-            Emotes = new List<List<DiscordEmoji>>();
+            Emotes.Clear();
             if (emoteId == null) return Task.FromException(new Exception("Please set Emotes"));
             {
                 for (var i = 0; i < emoteId.Length; i++)
