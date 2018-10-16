@@ -57,7 +57,7 @@ namespace RoleBot
             DiscordRole role)
         {
             var toRemove = (from roles in Bot.RolesToWatch
-                where roles.Role.Equals(role) select roles).First();
+                where roles.Role.Equals(role) && context.Guild.Equals(roles.Guild) select roles).First();
 
             Bot.RolesToWatch.Remove(toRemove);
             
