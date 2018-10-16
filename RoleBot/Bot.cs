@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
@@ -86,7 +87,9 @@ namespace RoleBot
         {
             // Sets Guilds to observe
             var guildId = Config.Root?.Element("Guilds")?.Value.Split(",");
-            Guilds.Clear();
+            if (Guilds == null) Guilds = new List<DiscordGuild>();
+            else Guilds.Clear();
+            
             if (guildId == null) return Task.FromException(new Exception("Pleases set Guilds"));
             {
                 foreach (var id in guildId)
@@ -98,7 +101,9 @@ namespace RoleBot
             
             // Sets Channels to observe
             var channelId = Config.Root?.Element("Channels")?.Value.Split(",");
-            Channels.Clear();
+            if (Channels == null) Channels = new List<DiscordChannel>();
+            else Channels.Clear();
+            
             if (channelId == null) return Task.FromException(new Exception("Please set Channels"));
             {
                 for (var i = 0; i < channelId.Length; i++)
@@ -110,7 +115,9 @@ namespace RoleBot
             
             // Sets Messages to observe
             var messageId = Config.Root?.Element("Messages")?.Value.Split(",");
-            Messages.Clear();
+            if (Messages == null) Messages = new List<DiscordMessage>();
+            else Messages.Clear();
+            
             if (messageId == null) return Task.FromException(new Exception("Please set Messages"));
             {
                 for (var i = 0; i < messageId.Length; i++)
@@ -122,7 +129,9 @@ namespace RoleBot
             
             // Sets Roles to manage
             var roleId = Config.Root?.Element("Roles")?.Elements("Channel").ToArray();
-            Roles.Clear();
+            if (Roles == null) Roles = new List<List<DiscordRole>>();
+            else Roles.Clear();
+            
             if (roleId == null) return Task.FromException(new Exception("Please set Roles"));
             {
                 for (var i = 0; i < roleId.Length; i++)
@@ -137,7 +146,9 @@ namespace RoleBot
             
             // Sets Emojis to watch
             var emoteId = Config.Root?.Element("Emotes")?.Elements("Channel").ToArray();
-            Emotes.Clear();
+            if (Emotes == null) Emotes = new List<List<DiscordEmoji>>();
+            else Emotes.Clear();
+            
             if (emoteId == null) return Task.FromException(new Exception("Please set Emotes"));
             {
                 for (var i = 0; i < emoteId.Length; i++)
