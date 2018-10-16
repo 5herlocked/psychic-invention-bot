@@ -40,6 +40,7 @@ namespace RoleBot
                 Description = description.ToString()
             };
 
+            await Bot.UpdateConfigFile();
             await context.RespondAsync("", false, embed);
         }
     }
