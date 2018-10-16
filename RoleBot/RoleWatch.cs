@@ -1,3 +1,4 @@
+using System;
 using DSharpPlus.Entities;
 
 namespace RoleBot
@@ -18,6 +19,15 @@ namespace RoleBot
             Message = message;
             Emoji = emoji;
             Role = role;
+        }
+
+        public RoleWatch(string guild, string channel, string message, string emoji, string role)
+        {
+            Guild = Bot.Client.GetGuildAsync(UInt64.Parse(guild)).Result;
+            Channel = Guild.GetChannel(UInt64.Parse(channel));
+            Message = Channel.GetMessageAsync(UInt64.Parse(message)).Result;
+            Emoji = Guild.GetEmojiAsync(UInt64.Parse(emoji)).Result;
+            Role = Guild.GetRole(UInt64.Parse(role));
         }
     }
 }
