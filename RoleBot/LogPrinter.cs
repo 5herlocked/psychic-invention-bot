@@ -86,7 +86,8 @@ namespace RoleBot
                 {
                     Title = "Lack of Permission",
                     Description =
-                        $"{e.Context.User} does not have the required permissions to execute this command {Formatter.Bold(e.Context.Command.QualifiedName)}"
+                        $"{e.Context.User} does not have the required permissions to execute this command " +
+                        $"{Formatter.Bold(e.Context.Command.QualifiedName)}"
                 };
 
                 await e.Context.RespondAsync("", false, embedded);

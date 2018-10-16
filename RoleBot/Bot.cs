@@ -201,6 +201,7 @@ namespace RoleBot
                 {
                     writer.WriteStartElement("Roles");
                     writer.WriteComment(role.Role.Name);
+                    writer.WriteComment(role.Guild.Name);
                     writer.WriteElementString("Guild", role.Guild.Id.ToString());
                     writer.WriteElementString("Channel", role.Channel.Id.ToString());
                     writer.WriteElementString("Message", role.Message.Id.ToString());
