@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -14,7 +15,8 @@ namespace RoleBot
     internal class Commands
     {
         // all commands will need to be executed as such <prefix> admin <command> <args>
-
+        
+        // adds a role to watch for rolebot
         [Command("addrole"), Description("Constructs a new Role to watch"),
          RequirePermissions(Permissions.ManageRoles)]
         public async Task AddRole(CommandContext context,
@@ -23,25 +25,54 @@ namespace RoleBot
             [Description("Emote to watch corresponding to Role")] DiscordEmoji emoji,
             [Description("Role to watch")] DiscordRole role)
         {
+            // adds to list of roles being watched
             Bot.RolesToWatch.Add(new RoleWatch(context.Guild, channel, message, emoji, role));
 
             await context.TriggerTypingAsync();
-
+            
+            // string to be used for embedbuilder
             var description = new StringBuilder();
 
             description.AppendLine(Formatter.Bold("Role: ")).AppendLine(role.Name).AppendLine()
                 .AppendLine(Formatter.Bold("Emoji: ")).AppendLine(emoji).AppendLine()
                 .AppendLine(Formatter.Bold("Channel: ")).AppendLine(channel.Name).AppendLine()
-                .AppendLine(Formatter.Bold("Message: ")).AppendLine(message.Content + " from " + message.Author);
+                .AppendLine(Formatter.Bold("Message: ")).AppendLine(message.Content + " from " + message.Author.Username);
             
             var embed = new DiscordEmbedBuilder
             {
                 Title = "Reaction Role Created",
                 Description = description.ToString()
             };
-
-            await Bot.UpdateConfigFile();
+            
+            await LogPrinter.Role_Created(role, emoji);
             await context.RespondAsync("", false, embed);
+            await Bot.UpdateConfigFile();
+        }
+        
+        // stops an existing role from being watched
+        [Command("removerole"), Description("Stops an existing Role from being watched"),
+         RequirePermissions(Permissions.ManageRoles)]
+        public async Task RemoveRole(CommandContext context,
+            [Description("Role that should be stopped watching")]
+            DiscordRole role)
+        {
+            var toRemove = (from roles in Bot.RolesToWatch
+                where roles.Role.Equals(role) select roles).First();
+
+            Bot.RolesToWatch.Remove(toRemove);
+            
+            await context.TriggerTypingAsync();
+            
+            var embed = new DiscordEmbedBuilder
+            {
+                Title = "Reaction Role Removed",
+                Description = $"{role.Name} is no longer being watched by RoleBot"
+            };
+
+            await LogPrinter.Role_Removed(role);
+            await context.RespondAsync("", false, embed);
+            await Bot.UpdateConfigFile();
+            
         }
     }
 }

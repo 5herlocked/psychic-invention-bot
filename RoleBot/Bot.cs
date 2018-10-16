@@ -19,9 +19,7 @@ namespace RoleBot
         
         internal static DiscordClient Client { get; private set; } // Discord API Client
         
-        internal static List<RoleWatch> RolesToWatch { get; set; } // Roles To Watch
-        
-        private static bool CommandsFlag { get; set; } // Flag to enable or disable commands
+        internal static List<RoleWatch> RolesToWatch { get; private set; } // Roles To Watch
         
         private static CommandsNextModule Commands { get; set; }
         
@@ -56,28 +54,25 @@ namespace RoleBot
                 Client = new DiscordClient(clientConfig);
             }
 
-            if (CommandsFlag)
+            var commandsConfig = new CommandsNextConfiguration
             {
-                var commandsConfig = new CommandsNextConfiguration
-                {
-                    StringPrefix = "r!",
+                StringPrefix = "r!",
 
-                    EnableDms = true,
+                EnableDms = true,
 
-                    EnableMentionPrefix = true
-                };
-            
-                // Command Modules and construction
-                Commands = Client.UseCommandsNext(commandsConfig);
-            
-                // command events
-                Commands.CommandExecuted += LogPrinter.CommandExecuted;
-                Commands.CommandErrored += LogPrinter.CommandErred;
-            
-                // registering the commands
-                Commands.RegisterCommands<Commands>();
-                Commands.SetHelpFormatter<HelpFormatter>();    
-            }
+                EnableMentionPrefix = true
+            };
+
+            // Command Modules and construction
+            Commands = Client.UseCommandsNext(commandsConfig);
+
+            // command events
+            Commands.CommandExecuted += LogPrinter.CommandExecuted;
+            Commands.CommandErrored += LogPrinter.CommandErred;
+
+            // registering the commands
+            Commands.RegisterCommands<Commands>();
+            Commands.SetHelpFormatter<HelpFormatter>();
             
             // logs before bot is live
             Client.Ready += LogPrinter.Client_Ready;
@@ -117,7 +112,7 @@ namespace RoleBot
             var root = Config.Root;
 
             if (root == null) return Task.FromException(new NullReferenceException("Looks like config is empty"));
-            foreach (var roles in root.Elements())
+            foreach (var roles in root.Elements("Roles"))
             {
                 var guild = roles.Element("Guild")?.Value;
                 var channel = roles.Element("Channel")?.Value;
@@ -127,9 +122,6 @@ namespace RoleBot
                     
                 RolesToWatch.Add(new RoleWatch(guild, channel, message, emoji, role));
             }
-
-            var commandsFlag = root.Element("Commands")?.ToString().ToLower();
-            if (commandsFlag != null) CommandsFlag = commandsFlag.Equals("true");
 
             return Task.CompletedTask;
         }
@@ -188,7 +180,7 @@ namespace RoleBot
                 // retroactively removes roles
                 foreach (var member in membersToRemove)
                 {
-                    if (member.Roles.Contains(roleToRevoke.First().Role)) continue;
+                    if (!member.Roles.Contains(roleToRevoke.First().Role)) continue;
 
                     await member.RevokeRoleAsync(roleToRevoke.First().Role);
                     await LogPrinter.Role_Revoked(e, member, roleToRevoke.First().Role);
@@ -199,18 +191,22 @@ namespace RoleBot
         // updates config files whenever needed
         internal static Task UpdateConfigFile()
         {
-            using (var writer = XmlWriter.Create("config.xml"))
+            using (var writer = XmlWriter.Create("config.xml", new XmlWriterSettings {Indent = true}))
             {
                 writer.WriteStartDocument();
-                writer.WriteStartElement("Roles");
-
+                writer.WriteStartElement("Config");
+                writer.WriteElementString("Token", Config.Root?.Element("Token")?.Value);
+                
                 foreach (var role in RolesToWatch)
                 {
+                    writer.WriteStartElement("Roles");
+                    writer.WriteComment(role.Role.Name);
                     writer.WriteElementString("Guild", role.Guild.Id.ToString());
                     writer.WriteElementString("Channel", role.Channel.Id.ToString());
                     writer.WriteElementString("Message", role.Message.Id.ToString());
                     writer.WriteElementString("Emoji", role.Emoji.Id.ToString());
                     writer.WriteElementString("Role", role.Role.Id.ToString());
+                    writer.WriteEndElement();
                 }
                 
                 writer.WriteEndElement();

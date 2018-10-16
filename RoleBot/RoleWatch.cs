@@ -5,11 +5,11 @@ namespace RoleBot
 {
     public class RoleWatch
     {
-        public DiscordGuild Guild { get; private set; }
-        public DiscordChannel Channel { get; private set; }
-        public DiscordMessage Message { get; private set; }
-        public DiscordEmoji Emoji { get; private set; }
-        public DiscordRole Role { get; private set; }
+        public DiscordGuild Guild { get; }
+        public DiscordChannel Channel { get; }
+        public DiscordMessage Message { get; }
+        public DiscordEmoji Emoji { get; }
+        public DiscordRole Role { get; }
 
         // Constructor
         public RoleWatch(DiscordGuild guild, DiscordChannel channel, DiscordMessage message, DiscordEmoji emoji, DiscordRole role)
