@@ -1,6 +1,8 @@
 ﻿// Author: Shardul Vaidya
 using System;
 using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -26,10 +28,10 @@ namespace RoleBot
         private static readonly ManualResetEvent QuitEvent = new ManualResetEvent(false);
         
         // instance vars for logs
-//        internal static readonly string Path =
-//            System.IO.Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + $"/\"log{DateTime.UtcNow}.txt\""; //log file path
-//        private static FileStream _fileStream; //file stream for printing
-//        private static StreamWriter _log;
+        private static readonly string
+            LogPath = Path.Combine(Directory.GetCurrentDirectory(), $"log.txt");
+        private static readonly FileStream FileStream = new FileStream(LogPath, FileMode.Append); //file stream for printing
+        private static readonly StreamWriter Log = new StreamWriter(FileStream);
 
         internal static async Task<string> RunBotAsync()
         {
@@ -79,20 +81,16 @@ namespace RoleBot
             Client.GuildAvailable += LogPrinter.Guild_Available;
             Client.ClientErrored += LogPrinter.Client_Error;
             
-            // The actual event handlers
+            // The actual event handlers for Reaction Managing
             Client.MessageReactionAdded += Reaction_Added;
             Client.MessageReactionRemoved += Reaction_Removed;
 
             // Writing log to file
-//            Client.DebugLogger.LogMessageReceived += (sender, e) =>
-//            {
-//                if (!File.Exists(Path)) File.CreateText(Path);
-//                _fileStream = new FileStream(Path, FileMode.Append);
-//                _log = new StreamWriter(_fileStream);
-//                
-//                _log.WriteLineAsync(
-//                    $"[{e.Timestamp.ToString(CultureInfo.CurrentCulture)}][{e.Application}][{e.Level}][{e.Message}]");
-//            };
+            Client.DebugLogger.LogMessageReceived += (sender, e) =>
+            {
+                Log.WriteLineAsync(
+                    $"[{e.Timestamp.ToString(CultureInfo.CurrentCulture)}][{e.Application}][{e.Level}] {e.Message}");
+            };
             
             await Client.ConnectAsync();
             QuitEvent.WaitOne();
@@ -100,6 +98,9 @@ namespace RoleBot
             Client.DebugLogger.LogMessage(LogLevel.Critical, "RoleBot", "End Signal Received Bot Terminating", DateTime.UtcNow);
             
             await UpdateConfigFile();
+            
+            Log.Close();
+            FileStream.Close();
             
             return "Bot done";
         }
