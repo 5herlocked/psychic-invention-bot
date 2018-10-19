@@ -74,5 +74,49 @@ namespace RoleBot
             await Bot.UpdateConfigFile();
             
         }
+        
+        // kick a member using bot
+        [Command("kick"), Description("Kicks a guild member from server"), RequirePermissions(Permissions.KickMembers)]
+        public async Task KickMember(CommandContext context,
+            [Description("Member that should be kicked")] DiscordMember member,
+            [Description("Reason for kick")] string reason)
+        {
+            await context.TriggerTypingAsync();
+            
+            var embed = new DiscordEmbedBuilder
+            {
+                Title = "Member Kicked",
+                Description = $"{context.User} you've kicked {member} for {reason}"
+            };
+
+            await context.RespondAsync("", false, embed);
+            await member.SendMessageAsync($"You've been kicked from {context.Guild} for {reason}");
+            await context.Guild.RemoveMemberAsync(member, reason);
+        }
+        
+        // ban a member using bot
+        [Command("ban"), Description("Bans a guild member from the guild"), RequirePermissions(Permissions.BanMembers)]
+        public async Task BanMember(CommandContext context,
+            [Description("Member that is to be banned")]
+            DiscordMember member,
+            [Description("Reason for the ban")] string reason)
+        {
+            await context.TriggerTypingAsync();
+            
+            var embed = new DiscordEmbedBuilder
+            {
+                Title = "Member banned",
+                Description = $"{context.User} you used :hammer: on {member} for {reason}"
+            };
+
+            await context.RespondAsync("", false, embed);
+            await member.SendMessageAsync($"You've been banned from {context.Guild} for {reason}");
+            await context.Guild.BanMemberAsync(member, 0, reason);
+        }
+        
+        // create a role
+        [Command("createrole"), Description("Creates a role for the guild"), RequirePermissions(Permissions.ManageRoles)]
+        public async Task CreateRole(CommandContext context,
+            [Description()])
     }
 }
