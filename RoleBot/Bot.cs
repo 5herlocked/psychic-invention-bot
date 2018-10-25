@@ -220,8 +220,11 @@ namespace RoleBot
                 foreach (var role in RolesToWatch)
                 {
                     writer.WriteStartElement("Roles");
-                    writer.WriteComment(role.Role.Name);
-                    writer.WriteComment(role.Guild.Name);
+                    writer.WriteComment("Guild: " + role.Guild.Name);
+                    writer.WriteComment("Channel: " + role.Channel);
+                    writer.WriteComment("Message: " + role.Message);
+                    writer.WriteComment("Emoji: " + role.Emoji);
+                    writer.WriteComment("Role: " + role.Role.Name);
                     writer.WriteElementString("Guild", role.Guild.Id.ToString());
                     writer.WriteElementString("Channel", role.Channel.Id.ToString());
                     writer.WriteElementString("Message", role.Message.Id.ToString());
