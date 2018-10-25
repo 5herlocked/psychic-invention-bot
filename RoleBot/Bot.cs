@@ -31,7 +31,7 @@ namespace RoleBot
         
         // instance vars for logs
         private static readonly string
-            LogPath = Path.Combine(Directory.GetCurrentDirectory(), $"log.txt");
+            LogPath = Path.Combine(Directory.GetCurrentDirectory(), "log.txt");
         private static readonly FileStream FileStream = new FileStream(LogPath, FileMode.Append); //file stream for printing
         private static readonly StreamWriter Log = new StreamWriter(FileStream);
 
@@ -116,6 +116,7 @@ namespace RoleBot
             var root = Config.Root;
 
             if (root == null) return Task.FromException(new NullReferenceException("Looks like config is empty"));
+            
             AutoRemoveFlag = root.Element("AutoRemove").Value.ToLower().Equals("true");
             
             foreach (var roles in root.Elements("Roles"))
