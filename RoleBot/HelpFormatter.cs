@@ -1,4 +1,5 @@
-// author: Shardul Vaidya
+// @author Shardul Vaidya
+// implementing HelpFormatter created by Emzi for D#+
 
 using System;
 using System.Collections.Generic;

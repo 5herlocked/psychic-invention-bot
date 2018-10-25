@@ -1,3 +1,4 @@
+//@author Shardul Vaidya
 using System;
 using DSharpPlus.Entities;
 

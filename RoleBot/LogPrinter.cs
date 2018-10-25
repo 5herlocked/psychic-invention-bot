@@ -1,4 +1,4 @@
-// Author: Shardul Vaidya
+//@author Shardul Vaidya
 using System;
 using System.Threading.Tasks;
 
