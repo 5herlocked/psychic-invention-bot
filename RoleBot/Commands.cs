@@ -113,10 +113,5 @@ namespace RoleBot
             await member.SendMessageAsync($"You've been banned from {context.Guild} for {reason}");
             await context.Guild.BanMemberAsync(member, 0, reason);
         }
-        
-        // create a role
-        [Command("createrole"), Description("Creates a role for the guild"), RequirePermissions(Permissions.ManageRoles)]
-        public async Task CreateRole(CommandContext context,
-            [Description()])
     }
 }
