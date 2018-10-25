@@ -25,6 +25,8 @@ namespace RoleBot
         
         private static CommandsNextModule Commands { get; set; }
         
+        internal static bool AutoRemoveFlag { get; set; }
+        
         private static readonly ManualResetEvent QuitEvent = new ManualResetEvent(false);
         
         // instance vars for logs
@@ -73,7 +75,8 @@ namespace RoleBot
             Commands.CommandErrored += LogPrinter.CommandErred;
 
             // registering the commands
-            Commands.RegisterCommands<Commands>();
+            Commands.RegisterCommands<RoleCommands>();
+            Commands.RegisterCommands<OwnerCommands>();
             Commands.SetHelpFormatter<HelpFormatter>();
             
             // logs before bot is live
@@ -113,6 +116,8 @@ namespace RoleBot
             var root = Config.Root;
 
             if (root == null) return Task.FromException(new NullReferenceException("Looks like config is empty"));
+            AutoRemoveFlag = root.Element("AutoRemove").Value.ToLower().Equals("true");
+            
             foreach (var roles in root.Elements("Roles"))
             {
                 var guild = roles.Element("Guild")?.Value;
@@ -140,7 +145,7 @@ namespace RoleBot
                     select roles;
                 roleToAssign = roleToAssign.ToList();
                 
-                // get members who've reacted
+                // get members who've reacted from the users who've reacted
                 var membersReacted = from discordUser in e.Message.GetReactionsAsync(e.Emoji).Result
                     select roleToAssign.First().Guild.GetMemberAsync(discordUser.Id).Result;
                 
@@ -162,27 +167,40 @@ namespace RoleBot
             
             if (roleExists)
             {
+                // selects the role that is supposed to be revoked
                 var roleToRevoke = from roles in RolesToWatch
                     where roles.Emoji.Equals(e.Emoji)
                     select roles;
                 roleToRevoke = roleToRevoke.ToList();
                 
-                // retro actively tries to remove roles (created in case bot goes offline)
-                var guildMembers = roleToRevoke.First().Guild.GetAllMembersAsync().Result;
-
-                var membersReacted = from discordUser in e.Message.GetReactionsAsync(e.Emoji).Result
-                    select roleToRevoke.First().Guild.GetMemberAsync(discordUser.Id).Result;
-
-                // filters members to remove
-                var membersToRemove = from discordMember in guildMembers
-                    where !membersReacted.Contains(discordMember)
-                    select discordMember;
-
-                // retroactively removes roles
-                foreach (var member in membersToRemove)
+                if (AutoRemoveFlag)
                 {
-                    if (!member.Roles.Contains(roleToRevoke.First().Role)) continue;
+                    // retro actively tries to remove roles (created in case bot goes offline)
+                    var guildMembers = roleToRevoke.First().Guild.GetAllMembersAsync().Result;
+                    
+                    // gets all the members reacted then gets members from the guild
+                    var membersReacted = from discordUser in e.Message.GetReactionsAsync(e.Emoji).Result
+                        select roleToRevoke.First().Guild.GetMemberAsync(discordUser.Id).Result;
 
+                    // filters members to remove
+                    // select member from guildmembers where reacted members doesn't contain the member
+                    var membersToRemove = from discordMember in guildMembers
+                        where !membersReacted.Contains(discordMember)
+                        select discordMember;
+
+                    // retroactively removes roles
+                    foreach (var member in membersToRemove)
+                    {
+                        // optimisation to reduce iterations if member doesn't have the role
+                        if (!member.Roles.Contains(roleToRevoke.First().Role)) continue;
+
+                        await member.RevokeRoleAsync(roleToRevoke.First().Role);
+                        await LogPrinter.Role_Revoked(e, member, roleToRevoke.First().Role);
+                    }   
+                }
+                else
+                {
+                    var member = roleToRevoke.First().Guild.GetMemberAsync(e.User.Id).Result;
                     await member.RevokeRoleAsync(roleToRevoke.First().Role);
                     await LogPrinter.Role_Revoked(e, member, roleToRevoke.First().Role);
                 }
@@ -197,6 +215,7 @@ namespace RoleBot
                 writer.WriteStartDocument();
                 writer.WriteStartElement("Config");
                 writer.WriteElementString("Token", Config.Root?.Element("Token")?.Value);
+                writer.WriteElementString("AutoRemove", AutoRemoveFlag.ToString());
                 
                 foreach (var role in RolesToWatch)
                 {

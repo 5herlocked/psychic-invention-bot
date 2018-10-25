@@ -9,10 +9,10 @@ using DSharpPlus.Entities;
 
 namespace RoleBot
 {
-    [Group("admin")] // marked as admin group commands
+    // marked as admin group commands
     [Description("Administrative Commands")] // created for helpformatter
     [RequirePermissions(Permissions.ManageRoles)]
-    internal class Commands
+    internal class RoleCommands
     {
         // all commands will need to be executed as such <prefix> admin <command> <args>
         
@@ -73,6 +73,30 @@ namespace RoleBot
             await context.RespondAsync("", false, embed);
             await Bot.UpdateConfigFile();
             
+        }
+    }
+    
+    // commands restricted to the owner of the guild
+    [Group("owner")]
+    [Description("Owner Commands")]
+    [Hidden]
+    internal class OwnerCommands
+    {
+        // toggle AutoRemove to let existing servers keep their roles
+        [Command("autoremove"), Description("Toggles the auto-removal of members who haven't reacted"), RequireOwner]
+        public async Task ToggleAutoRemove(CommandContext context)
+        {
+            Bot.AutoRemoveFlag = !Bot.AutoRemoveFlag;
+            
+            var embed = new DiscordEmbedBuilder
+            {
+                Title = "Toggle Auto Remove",
+                Description = $"The Bot will {(Bot.AutoRemoveFlag ? "no longer" : "")} revoke member roles automatically"
+            };
+
+            await context.TriggerTypingAsync();
+            await context.RespondAsync("", false, embed);
+            await Bot.UpdateConfigFile();
         }
     }
 }
