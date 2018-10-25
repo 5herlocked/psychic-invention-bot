@@ -173,7 +173,7 @@ namespace RoleBot
                     select roles;
                 roleToRevoke = roleToRevoke.ToList();
                 
-                if (AutoRemoveFlag)
+                if (!AutoRemoveFlag)
                 {
                     // retro actively tries to remove roles (created in case bot goes offline)
                     var guildMembers = roleToRevoke.First().Guild.GetAllMembersAsync().Result;
