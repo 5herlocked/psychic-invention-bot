@@ -1,13 +1,12 @@
 ﻿//@author Shardul Vaidya
 using System;
-using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
-using System.Xml.Linq;
+using System.Xml.Serialization;
 
 using DSharpPlus;
 using DSharpPlus.CommandsNext;
@@ -15,19 +14,17 @@ using DSharpPlus.EventArgs;
 
 namespace RoleBot
 {
-    internal static class Bot
+    internal class Bot
     {
-        private static readonly XDocument Config = XDocument.Load("config.xml"); // Config file loaded
+        private const string ConfigPath = "config.xml";
         
+        internal static Config Config { get; set; }
+
         internal static DiscordClient Client { get; private set; } // Discord API Client
         
-        internal static List<RoleWatch> RolesToWatch { get; private set; } // Roles To Watch
+        private static CommandsNextModule Commands { get; set; } // Commands Next Module for interactivity and config
         
-        private static CommandsNextModule Commands { get; set; }
-        
-        internal static bool AutoRemoveFlag { get; set; }
-        
-        private static readonly ManualResetEvent QuitEvent = new ManualResetEvent(false);
+        private static readonly ManualResetEvent QuitEvent = new ManualResetEvent(false); // End Signal Watcher
         
         // instance vars for logs
         private static readonly string
@@ -37,27 +34,44 @@ namespace RoleBot
 
         internal static async Task<string> RunBotAsync()
         {
+            /*
+             * Sets up the End Signal Watcher to allow for safe termination of the bot
+             */
             Console.CancelKeyPress += (sender, args) =>
             {
                 QuitEvent.Set();
                 args.Cancel = true;
             };
+
+            await RefreshConfig();
             
-            if (Config.Root != null)
+            /*
+             * Creates the Discord Configuration and instantiates the DiscordClient if the Config File is not empty
+             *
+             * Get Token from Config File
+             * States that user is a bot
+             * Then states the log level for the instantiation and creation of the client
+             */
+            var clientConfig = new DiscordConfiguration
             {
-                var clientConfig = new DiscordConfiguration
-                {
-                    Token = Config.Root.Element("Token")?.Value,
-                    TokenType = TokenType.Bot,
+                Token = Config.Token,
+                TokenType = TokenType.Bot,
 
-                    LogLevel = LogLevel.Debug,
-                    UseInternalLogHandler = true
-                };
+                LogLevel = LogLevel.Debug,
+                UseInternalLogHandler = true
+            };
 
-                // instantiated the client
-                Client = new DiscordClient(clientConfig);
-            }
+            /*
+             * Instantiates the client
+             */
+            Client = new DiscordClient(clientConfig);
 
+            
+            /*
+             * Configures the Commands Module with the Command Prefix and states that the bot is able to send DMs to
+             * members.
+             * Also configures it to be possible to use a bot mention as a Command Prefix
+             */
             var commandsConfig = new CommandsNextConfiguration
             {
                 StringPrefix = "r!",
@@ -70,7 +84,7 @@ namespace RoleBot
             // Command Modules and construction
             Commands = Client.UseCommandsNext(commandsConfig);
 
-            // command events
+            // Command events Log
             Commands.CommandExecuted += LogPrinter.CommandExecuted;
             Commands.CommandErrored += LogPrinter.CommandErred;
 
@@ -84,7 +98,7 @@ namespace RoleBot
             Client.GuildAvailable += LogPrinter.Guild_Available;
             Client.ClientErrored += LogPrinter.Client_Error;
             
-            // The actual event handlers for Reaction Managing
+            // The actual event handlers for Reaction Management
             Client.MessageReactionAdded += Reaction_Added;
             Client.MessageReactionRemoved += Reaction_Removed;
 
@@ -95,53 +109,52 @@ namespace RoleBot
                     $"[{e.Timestamp.ToString(CultureInfo.CurrentCulture)}][{e.Application}][{e.Level}] {e.Message}");
             };
             
+            
+            // async operation of the bot allows for consistent performance regardless of the load
             await Client.ConnectAsync();
+            
+            // Puts current thread to sleep until an End Signal is received (Ctrl + C)
             QuitEvent.WaitOne();
             
+            // Indicates that bot is being terminated
             Client.DebugLogger.LogMessage(LogLevel.Critical, "RoleBot", "End Signal Received Bot Terminating", DateTime.UtcNow);
             
+            // Updates the config file with latest changes to make them permanent
             await UpdateConfigFile();
             
+            // Releases the Log file from the Program
             Log.Close();
             FileStream.Close();
             
             return "Bot done";
         }
-
+        
+        /* Refresh Config Method
+         *
+         * Used to load the configuration into the assembly
+         * Gets each <Role> Node from config.xml and deserializes them into RoleWatch Objects
+         */
         internal static Task RefreshConfig()
         {
-            if (RolesToWatch == null) RolesToWatch = new List<RoleWatch>();
-            else RolesToWatch.Clear();
-            
-            var root = Config.Root;
-
-            if (root == null) return Task.FromException(new NullReferenceException("Looks like config is empty"));
-            
-            AutoRemoveFlag = root.Element("AutoRemove").Value.ToLower().Equals("true");
-            
-            foreach (var roles in root.Elements("Roles"))
+            using (var reader = new StreamReader(ConfigPath))
             {
-                var guild = roles.Element("Guild")?.Value;
-                var channel = roles.Element("Channel")?.Value;
-                var message = roles.Element("Message")?.Value;
-                var emoji = roles.Element("Emoji")?.Value;
-                var role = roles.Element("Role")?.Value;
-                    
-                RolesToWatch.Add(new RoleWatch(guild, channel, message, emoji, role));
+                var serializer  = new XmlSerializer(typeof(Config));
+                
+                Config = serializer.Deserialize(reader) as Config;
             }
-
+            
             return Task.CompletedTask;
         }
 
         private static async Task Reaction_Added(MessageReactionAddEventArgs e)
         {
-            var roleExists = RolesToWatch.Select(r => r.Message).ToList().Contains(e.Message);
+            var roleExists = Config.RolesToWatch.Select(r => r.Message).ToList().Contains(e.Message);
             
             // filters out spare emotes
             if (roleExists)
             {
                 // get the role to assign
-                var roleToAssign = from roles in RolesToWatch
+                var roleToAssign = from roles in Config.RolesToWatch
                     where roles.Emoji.Equals(e.Emoji)
                     select roles;
                 roleToAssign = roleToAssign.ToList();
@@ -164,17 +177,17 @@ namespace RoleBot
 
         private static async Task Reaction_Removed(MessageReactionRemoveEventArgs e)
         {
-            var roleExists = RolesToWatch.Select(r => r.Message).ToList().Contains(e.Message);
+            var roleExists = Config.RolesToWatch.Select(r => r.Message).ToList().Contains(e.Message);
             
             if (roleExists)
             {
                 // selects the role that is supposed to be revoked
-                var roleToRevoke = from roles in RolesToWatch
+                var roleToRevoke = from roles in Config.RolesToWatch
                     where roles.Emoji.Equals(e.Emoji)
                     select roles;
                 roleToRevoke = roleToRevoke.ToList();
                 
-                if (!AutoRemoveFlag)
+                if (!Config.AutoRemoveFlag)
                 {
                     // retro actively tries to remove roles (created in case bot goes offline)
                     var guildMembers = roleToRevoke.First().Guild.GetAllMembersAsync().Result;
@@ -184,7 +197,7 @@ namespace RoleBot
                         select roleToRevoke.First().Guild.GetMemberAsync(discordUser.Id).Result;
 
                     // filters members to remove
-                    // select member from guildmembers where reacted members doesn't contain the member
+                    // select member from guild members where reacted members doesn't contain the member
                     var membersToRemove = from discordMember in guildMembers
                         where !membersReacted.Contains(discordMember)
                         select discordMember;
@@ -209,16 +222,17 @@ namespace RoleBot
         }
         
         // updates config files whenever needed
-        internal static Task UpdateConfigFile()
+        /*
+         internal static Task UpdateConfigFile()
         {
             using (var writer = XmlWriter.Create("config.xml", new XmlWriterSettings {Indent = true}))
             {
                 writer.WriteStartDocument();
                 writer.WriteStartElement("Config");
                 writer.WriteElementString("Token", Config.Root?.Element("Token")?.Value);
-                writer.WriteElementString("AutoRemove", AutoRemoveFlag.ToString());
+                writer.WriteElementString("AutoRemove", Config.AutoRemoveFlag.ToString());
                 
-                foreach (var role in RolesToWatch)
+                foreach (var role in Config.RolesToWatch)
                 {
                     writer.WriteStartElement("Roles");
                     writer.WriteComment("Guild: " + role.Guild.Name);
@@ -235,6 +249,22 @@ namespace RoleBot
                 }
                 
                 writer.WriteEndElement();
+                writer.WriteEndDocument();
+            }
+            
+            return Task.CompletedTask;
+        }
+        */
+
+        internal static Task UpdateConfigFile()
+        {
+            var serializer = new XmlSerializer(typeof(Config), new[]{typeof(RoleWatch)});
+            //var rSerializer = new XmlSerializer(typeof(RoleWatch));
+            
+            using (var writer = XmlWriter.Create("config.xml", new XmlWriterSettings {Indent = true}))
+            {
+                writer.WriteStartDocument();
+                serializer.Serialize(writer, Config);
                 writer.WriteEndDocument();
             }
             
