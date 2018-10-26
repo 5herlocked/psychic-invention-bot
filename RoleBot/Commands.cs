@@ -11,7 +11,7 @@ using DSharpPlus.Entities;
 
 namespace RoleBot
 {
-    [Description("Administrative Commands")] // created for helpformatter
+    [Description("Role Management Commands")] // created for helpformatter
     [RequirePermissions(Permissions.ManageRoles)]
     internal class RoleCommands
     {
@@ -114,12 +114,12 @@ namespace RoleBot
         }
     }
     
-    // commands restricted to the owner of the guild
+    // commands restricted to the admin of the guild
     [Group("admin")]
-    [Description("Owner Commands")]
+    [Description("Admin Commands")]
     [Hidden]
     [RequirePermissions(Permissions.Administrator)]
-    internal class OwnerCommands
+    internal class AdminCommands
     {
         /* ToggleAutoRemove Method
          * 

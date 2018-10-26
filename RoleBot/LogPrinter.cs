@@ -1,4 +1,5 @@
 //@author Shardul Vaidya
+
 using System;
 using System.Threading.Tasks;
 
@@ -30,6 +31,7 @@ namespace RoleBot
         }
 
         // Client has erred and cannot act
+        // prints all inner exceptions
         internal static Task Client_Error(ClientErrorEventArgs e)
         {
             e.Client.DebugLogger.LogMessage(LogLevel.Error, "Rolebot",

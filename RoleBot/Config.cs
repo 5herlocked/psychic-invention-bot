@@ -5,16 +5,15 @@ using System.Xml.Serialization;
 
 namespace RoleBot
 {
-    [XmlInclude(typeof(RoleWatch))]
     public class Config
     {
-        [XmlElement("token")]
-        public string Token { get; set; }    
-
-        [XmlElement("autoremove")]
-        public bool AutoRemoveFlag { get; set; } 
+        public string Token { get; set; }
         
-        [XmlElement("role")]
-        public List<RoleWatch> RolesToWatch = new List<RoleWatch>();
+        public bool AutoRemoveFlag { get; set; }
+        
+        [XmlElement("Roles", typeof(RoleWatch))]
+        public List<RoleWatch> RolesToWatch { get; set; }
+        
+        public Config () { RolesToWatch = new List<RoleWatch>(); }
     }
 }

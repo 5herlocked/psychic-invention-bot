@@ -18,7 +18,7 @@ namespace RoleBot
     {
         private const string ConfigPath = "config.xml";
         
-        internal static Config Config { get; set; }
+        internal static Config Config { get; set; } // Config Class for the Bot
 
         internal static DiscordClient Client { get; private set; } // Discord API Client
         
@@ -90,7 +90,7 @@ namespace RoleBot
 
             // registering the commands
             Commands.RegisterCommands<RoleCommands>();
-            Commands.RegisterCommands<OwnerCommands>();
+            Commands.RegisterCommands<AdminCommands>();
             Commands.SetHelpFormatter<HelpFormatter>();
             
             // logs before bot is live
@@ -98,7 +98,7 @@ namespace RoleBot
             Client.GuildAvailable += LogPrinter.Guild_Available;
             Client.ClientErrored += LogPrinter.Client_Error;
             
-            // The actual event handlers for Reaction Management
+            // The actual event handlers for Role Management
             Client.MessageReactionAdded += Reaction_Added;
             Client.MessageReactionRemoved += Reaction_Removed;
 
@@ -126,6 +126,9 @@ namespace RoleBot
             Log.Close();
             FileStream.Close();
             
+            Client.DebugLogger.LogMessage(LogLevel.Info, "RoleBot", "Log dump completed, Config file updated",
+                DateTime.Now);
+            
             return "Bot done";
         }
         
@@ -145,15 +148,26 @@ namespace RoleBot
             
             return Task.CompletedTask;
         }
-
+        
+        /* Reaction_Added Event Handler
+         *
+         * Checks if the message and emoji are being watched to improve efficiency
+         *
+         * If emoji and message are being watched, then selects all members who've reacted to the message with the emoji
+         * that is being watched, they are then assigned the role being managed
+         *
+         */
         private static async Task Reaction_Added(MessageReactionAddEventArgs e)
         {
+            if (!Config.RolesToWatch.Select(r => r.Emoji).ToList().Contains(e.Emoji)) return;
+            
             var roleExists = Config.RolesToWatch.Select(r => r.Message).ToList().Contains(e.Message);
             
             // filters out spare emotes
             if (roleExists)
             {
                 // get the role to assign
+                // select role where emoji is the emoji added
                 var roleToAssign = from roles in Config.RolesToWatch
                     where roles.Emoji.Equals(e.Emoji)
                     select roles;
@@ -174,14 +188,28 @@ namespace RoleBot
                 }
             }
         }
-
+        
+        /* Reaction_Removed Event Handler
+         * Checks if the emoji and the message is being watched
+         *
+         * Then gets roles that need to be revoked based on emoji.
+         *
+         * If admin has enabled autoremoval of members based on reactions, all members who haven't reacted with a
+         * particular emote AND have the specified role, have their role revoked
+         *
+         * If admin has disabled autoremoval of members based on reactions, each member is revoked on a per event base
+         */
         private static async Task Reaction_Removed(MessageReactionRemoveEventArgs e)
         {
+            // increase efficiency by ensuring that emotes that aren't being watched don't trigger unnecessary exceptions
+            if (!Config.RolesToWatch.Select(r => r.Emoji).ToList().Contains(e.Emoji)) return;
+            
             var roleExists = Config.RolesToWatch.Select(r => r.Message).ToList().Contains(e.Message);
             
             if (roleExists)
             {
                 // selects the role that is supposed to be revoked
+                // select role where emoji is emoji removed
                 var roleToRevoke = from roles in Config.RolesToWatch
                     where roles.Emoji.Equals(e.Emoji)
                     select roles;
@@ -212,6 +240,9 @@ namespace RoleBot
                         await LogPrinter.Role_Revoked(e, member, roleToRevoke.First().Role);
                     }   
                 }
+                /*
+                 * If AutoRemoval of Members is off
+                 */
                 else
                 {
                     var member = roleToRevoke.First().Guild.GetMemberAsync(e.User.Id).Result;
@@ -221,45 +252,15 @@ namespace RoleBot
             }
         }
         
-        // updates config files whenever needed
         /*
-         internal static Task UpdateConfigFile()
-        {
-            using (var writer = XmlWriter.Create("config.xml", new XmlWriterSettings {Indent = true}))
-            {
-                writer.WriteStartDocument();
-                writer.WriteStartElement("Config");
-                writer.WriteElementString("Token", Config.Root?.Element("Token")?.Value);
-                writer.WriteElementString("AutoRemove", Config.AutoRemoveFlag.ToString());
-                
-                foreach (var role in Config.RolesToWatch)
-                {
-                    writer.WriteStartElement("Roles");
-                    writer.WriteComment("Guild: " + role.Guild.Name);
-                    writer.WriteComment("Channel: " + role.Channel);
-                    writer.WriteComment("Message: " + role.Message);
-                    writer.WriteComment("Emoji: " + role.Emoji);
-                    writer.WriteComment("Role: " + role.Role.Name);
-                    writer.WriteElementString("Guild", role.Guild.Id.ToString());
-                    writer.WriteElementString("Channel", role.Channel.Id.ToString());
-                    writer.WriteElementString("Message", role.Message.Id.ToString());
-                    writer.WriteElementString("Emoji", role.Emoji.Id.ToString());
-                    writer.WriteElementString("Role", role.Role.Id.ToString());
-                    writer.WriteEndElement();
-                }
-                
-                writer.WriteEndElement();
-                writer.WriteEndDocument();
-            }
-            
-            return Task.CompletedTask;
-        }
-        */
-
+         * Updates the config file for permanent storage of settings and roles to watch
+         */
         internal static Task UpdateConfigFile()
         {
+            /*
+             * Initializes a new XmlSerializer with type config and RoleWatch
+             */
             var serializer = new XmlSerializer(typeof(Config), new[]{typeof(RoleWatch)});
-            //var rSerializer = new XmlSerializer(typeof(RoleWatch));
             
             using (var writer = XmlWriter.Create("config.xml", new XmlWriterSettings {Indent = true}))
             {
