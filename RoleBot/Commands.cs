@@ -129,7 +129,7 @@ namespace RoleBot
          * Mainly present to let pre-existing servers implement this bot without needing to have all its users react to
          * a message.
          */
-        [Command("autoremove"), Description("Toggles the auto-removal of members who haven't reacted"), RequireOwner]
+        [Command("autoremove"), Description("Toggles the auto-removal of members who haven't reacted"), RequirePermissions(Permissions.Administrator)]
         public async Task ToggleAutoRemove(CommandContext context)
         {
             Bot.Config.AutoRemoveFlag = !Bot.Config.AutoRemoveFlag;
@@ -138,6 +138,25 @@ namespace RoleBot
             {
                 Title = "Toggle Auto Remove",
                 Description = $"The Bot will {(Bot.Config.AutoRemoveFlag ? "no longer" : "")} revoke member roles automatically"
+            };
+
+            await context.TriggerTypingAsync();
+            await context.RespondAsync("", false, embed);
+            await Bot.UpdateConfigFile();
+        }
+
+        /* ChangePrefix Method
+         * This method changes the prefix that the Discord API observes to consider a message a command
+         */
+        [Command("changeprefix"), Description("Changes the Commands prefix"), RequirePermissions(Permissions.Administrator)]
+        public async Task ChangePrefix(CommandContext context, string newPrefix)
+        {
+            Bot.Config.CommandPrefix = newPrefix;
+
+            var embed = new DiscordEmbedBuilder
+            {
+                Title = "New Commands Prefix",
+                Description = $"The new commands prefix is: {newPrefix}"
             };
 
             await context.TriggerTypingAsync();
