@@ -13,5 +13,9 @@ namespace RoleBot
 
         [XmlElement("Prefix")]
         public string CommandPrefix { get; set; }
+
+        public List<RoleWatch> RolesToWatch { get; set; }
+
+        public Config () { RolesToWatch = new List<RoleWatch>(); }
     }
 }

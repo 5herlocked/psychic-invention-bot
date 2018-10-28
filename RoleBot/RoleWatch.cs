@@ -53,11 +53,10 @@ namespace RoleBot
          */
         public void ReadXml(XmlReader reader)
         {
-            reader.MoveToContent();
             var guild = reader.ReadElementString("Guild");
-            var channel = reader.ReadElementString("Message");
-            var emoji = reader.ReadElementString("Emoji");
+            var channel = reader.ReadElementString("Channel");
             var message = reader.ReadElementString("Message");
+            var emoji = reader.ReadElementString("Emoji");
             var role = reader.ReadElementString("RoleID");
             
             Guild = Bot.Client.GetGuildAsync(UInt64.Parse(guild)).Result;
@@ -73,7 +72,6 @@ namespace RoleBot
          */
         public void WriteXml(XmlWriter writer)
         {
-            writer.WriteStartElement("Role");
             writer.WriteComment("Guild: " + Guild.Name);
             writer.WriteComment("Channel: " + Channel);
             writer.WriteComment("Message: " + Message);
@@ -84,7 +82,6 @@ namespace RoleBot
             writer.WriteElementString("Message", Message.Id.ToString());
             writer.WriteElementString("Emoji", Emoji.GetDiscordName());
             writer.WriteElementString("RoleID", Role.Id.ToString());
-            writer.WriteEndElement();
         }
     }
 }

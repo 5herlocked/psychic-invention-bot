@@ -131,23 +131,6 @@ namespace RoleBot
             return "Bot done";
         }
         
-        /* Refresh Config Method
-         *
-         * Used to load the configuration into the assembly
-         * Gets each <Role> Node from config.xml and deserializes them into RoleWatch Objects
-         */
-        internal static Task RefreshConfig()
-        {
-            using (var reader = new StreamReader(ConfigPath))
-            {
-                var serializer  = new XmlSerializer(typeof(Config));
-                
-                Config = serializer.Deserialize(reader) as Config;
-            }
-            
-            return Task.CompletedTask;
-        }
-        
         /* Reaction_Added Event Handler
          *
          * Checks if the message and emoji are being watched to improve efficiency
@@ -250,7 +233,24 @@ namespace RoleBot
                 }
             }
         }
-        
+
+        /* Refresh Config Method
+        *
+        * Used to load the configuration into the assembly
+        * Gets each <Role> Node from config.xml and deserializes them into RoleWatch Objects
+        */
+        internal static Task RefreshConfig ()
+        {
+            using (var reader = new StreamReader(ConfigPath))
+            {
+                var serializer = new XmlSerializer(typeof(Config));
+
+                Config = serializer.Deserialize(reader) as Config;
+            }
+
+            return Task.CompletedTask;
+        }
+
         /*
          * Updates the config file for permanent storage of settings and roles to watch
          */
