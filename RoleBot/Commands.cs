@@ -33,18 +33,18 @@ namespace RoleBot
          RequirePermissions(Permissions.ManageRoles)]
         public async Task AddRole(CommandContext context,
             [Description("Channel to watch")] DiscordChannel channel,
-            [Description("Message to Watch")] DiscordMessage message,
+            [Description("Message to Watch")] string messageId,
             [Description("Emote to watch corresponding to Role")] DiscordEmoji emoji,
             [Description("Role to watch")] DiscordRole role)
         {
             // adds to list of roles being watched
-            Bot.Config.RolesToWatch.Add(new RoleWatch(context.Guild, channel, message, emoji, role));
+            Bot.Config.RolesToWatch.Add(new RoleWatch(context.Guild, channel, messageId, emoji, role));
 
             await context.TriggerTypingAsync();
             
             // string to be used for embedbuilder
             var description = new StringBuilder();
-            
+
             /*
              * Creates the description to be embedded in the response for the addrole command
              * Format:
@@ -55,8 +55,7 @@ namespace RoleBot
              */
             description.AppendLine(Formatter.Bold("Role: ")).AppendLine(role.Name).AppendLine()
                 .AppendLine(Formatter.Bold("Emoji: ")).AppendLine(emoji).AppendLine()
-                .AppendLine(Formatter.Bold("Channel: ")).AppendLine(channel.Name).AppendLine()
-                .AppendLine(Formatter.Bold("Message: ")).AppendLine(message.Content + " from " + message.Author.Username);
+                .AppendLine(Formatter.Bold("Channel: ")).AppendLine(channel.Name).AppendLine();
             
             var embed = new DiscordEmbedBuilder
             {
