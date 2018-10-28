@@ -121,15 +121,16 @@ namespace RoleBot
             
             // Indicates that bot is being terminated
             Client.DebugLogger.LogMessage(LogLevel.Critical, "RoleBot", "End Signal Received Bot Terminating", DateTime.UtcNow);
-
-            Client.DebugLogger.LogMessage(LogLevel.Info, "RoleBot", "Log dump completed, Config file updated", DateTime.UtcNow);
-
+            
             // Updates the config file with latest changes to make them permanent
             await UpdateConfigFile();
             
             // Releases the Log file from the Program
             Log.Close();
             FileStream.Close();
+            
+            Client.DebugLogger.LogMessage(LogLevel.Info, "RoleBot", "Log dump completed, Config file updated",
+                DateTime.Now);
             
             return "Bot done";
         }
