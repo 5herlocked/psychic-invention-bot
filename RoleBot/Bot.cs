@@ -74,7 +74,7 @@ namespace RoleBot
              */
             var commandsConfig = new CommandsNextConfiguration
             {
-                StringPrefix = Config.CommandPrefix,
+                StringPrefix = Config.CommandPrefix ?? "r!",
 
                 EnableDms = true,
 
