@@ -100,7 +100,7 @@ namespace RoleBot
         internal static Task Role_Created(DiscordRole role, DiscordEmoji emoji)
         {
             Bot.Client.DebugLogger.LogMessage(LogLevel.Info, "RoleBot",
-                $"{role.Name} is being watched through the emoji {emoji.Name}", DateTime.Now);
+                $"{role.Name} is being watched through the emoji {emoji.GetDiscordName()}", DateTime.Now);
             return Task.CompletedTask;
         }
         

@@ -33,18 +33,18 @@ namespace RoleBot
          RequirePermissions(Permissions.ManageRoles)]
         public async Task AddRole(CommandContext context,
             [Description("Channel to watch")] DiscordChannel channel,
-            [Description("Message to Watch")] DiscordMessage message,
+            [Description("Message to Watch")] string messageId,
             [Description("Emote to watch corresponding to Role")] DiscordEmoji emoji,
             [Description("Role to watch")] DiscordRole role)
         {
             // adds to list of roles being watched
-            Bot.config.RolesToWatch.Add(new RoleWatch(context.Guild, channel, message, emoji, role));
+            Bot.Config.RolesToWatch.Add(new RoleWatch(context.Guild, channel, messageId, emoji, role));
 
             await context.TriggerTypingAsync();
             
             // string to be used for embedbuilder
             var description = new StringBuilder();
-            
+
             /*
              * Creates the description to be embedded in the response for the addrole command
              * Format:
@@ -55,8 +55,7 @@ namespace RoleBot
              */
             description.AppendLine(Formatter.Bold("Role: ")).AppendLine(role.Name).AppendLine()
                 .AppendLine(Formatter.Bold("Emoji: ")).AppendLine(emoji).AppendLine()
-                .AppendLine(Formatter.Bold("Channel: ")).AppendLine(channel.Name).AppendLine()
-                .AppendLine(Formatter.Bold("Message: ")).AppendLine(message.Content + " from " + message.Author.Username);
+                .AppendLine(Formatter.Bold("Channel: ")).AppendLine(channel.Name).AppendLine();
             
             var embed = new DiscordEmbedBuilder
             {
@@ -88,7 +87,7 @@ namespace RoleBot
             [Description("Role that should be stopped watching")]
             DiscordRole role)
         {
-            var toRemove = (from roles in Bot.config.RolesToWatch
+            var toRemove = (from roles in Bot.Config.RolesToWatch
                 where roles.Role.Equals(role) && context.Guild.Equals(roles.Guild) select roles).First();
 
             if (toRemove == null)
@@ -97,7 +96,7 @@ namespace RoleBot
                 await context.RespondAsync("Looks like this role is not being watched");
             }
             
-            Bot.config.RolesToWatch.Remove(toRemove);
+            Bot.Config.RolesToWatch.Remove(toRemove);
             
             await context.TriggerTypingAsync();
             
@@ -118,7 +117,7 @@ namespace RoleBot
     [Group("admin")]
     [Description("Admin Commands")]
     [Hidden]
-    [RequireOwner]
+    [RequirePermissions(Permissions.Administrator)]
     internal class AdminCommands
     {
         /* ToggleAutoRemove Method
@@ -129,15 +128,15 @@ namespace RoleBot
          * Mainly present to let pre-existing servers implement this bot without needing to have all its users react to
          * a message.
          */
-        [Command("autoremove"), Description("Toggles the auto-removal of members who haven't reacted"), RequireOwner]
+        [Command("autoremove"), Description("Toggles the auto-removal of members who haven't reacted"), RequirePermissions(Permissions.Administrator)]
         public async Task ToggleAutoRemove(CommandContext context)
         {
-            Bot.config.AutoRemoveFlag = !Bot.config.AutoRemoveFlag;
+            Bot.Config.AutoRemoveFlag = !Bot.Config.AutoRemoveFlag;
             
             var embed = new DiscordEmbedBuilder
             {
                 Title = "Toggle Auto Remove",
-                Description = $"The Bot will {(Bot.config.AutoRemoveFlag ? "no longer" : "")} revoke member roles automatically"
+                Description = $"The Bot will {(Bot.Config.AutoRemoveFlag ? "no longer" : "")} revoke member roles automatically"
             };
 
             await context.TriggerTypingAsync();
@@ -148,10 +147,10 @@ namespace RoleBot
         /* ChangePrefix Method
          * This method changes the prefix that the Discord API observes to consider a message a command
          */
-        [Command("changeprefix"), Description("Changes the Commands prefix"), RequireOwner]
+        [Command("changeprefix"), Description("Changes the Commands prefix"), RequirePermissions(Permissions.Administrator)]
         public async Task ChangePrefix(CommandContext context, string newPrefix)
         {
-            Bot.config.CommandPrefix = newPrefix;
+            Bot.Config.CommandPrefix = newPrefix;
 
             var embed = new DiscordEmbedBuilder
             {

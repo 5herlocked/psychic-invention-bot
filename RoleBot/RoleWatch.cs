@@ -24,11 +24,11 @@ namespace RoleBot
         public RoleWatch() { }
 
         // Constructor
-        public RoleWatch(DiscordGuild guild, DiscordChannel channel, DiscordMessage message, DiscordEmoji emoji, DiscordRole role)
+        public RoleWatch(DiscordGuild guild, DiscordChannel channel, string message, DiscordEmoji emoji, DiscordRole role)
         {
             Guild = guild;
             Channel = channel;
-            Message = message;
+            Message = Channel.GetMessageAsync(UInt64.Parse(message)).Result;
             Emoji = emoji;
             Role = role;
         }
@@ -38,7 +38,7 @@ namespace RoleBot
             Guild = Bot.Client.GetGuildAsync(UInt64.Parse(guild)).Result;
             Channel = Guild.GetChannel(UInt64.Parse(channel));
             Message = Channel.GetMessageAsync(UInt64.Parse(message)).Result;
-            Emoji = Guild.GetEmojiAsync(UInt64.Parse(emoji)).Result;
+            Emoji = DiscordEmoji.FromName(Bot.Client, emoji);
             Role = Guild.GetRole(UInt64.Parse(role));
         }
 
@@ -63,7 +63,7 @@ namespace RoleBot
             Guild = Bot.Client.GetGuildAsync(UInt64.Parse(guild)).Result;
             Channel = Guild.GetChannel(UInt64.Parse(channel));
             Message = Channel.GetMessageAsync(UInt64.Parse(message)).Result;
-            Emoji = Guild.GetEmojiAsync(UInt64.Parse(emoji)).Result;
+            Emoji = DiscordEmoji.FromName(Bot.Client, emoji);
             Role = Guild.GetRole(UInt64.Parse(role));
         }
         
@@ -82,7 +82,7 @@ namespace RoleBot
             writer.WriteElementString("Guild", Guild.Id.ToString());
             writer.WriteElementString("Channel", Channel.Id.ToString());
             writer.WriteElementString("Message", Message.Id.ToString());
-            writer.WriteElementString("Emoji", Emoji.Id.ToString());
+            writer.WriteElementString("Emoji", Emoji.GetDiscordName());
             writer.WriteElementString("RoleID", Role.Id.ToString());
             writer.WriteEndElement();
         }

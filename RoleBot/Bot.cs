@@ -1,6 +1,5 @@
 ﻿//@author Shardul Vaidya
 using System;
-using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -18,14 +17,12 @@ namespace RoleBot
     internal class Bot
     {
         private const string ConfigPath = "config.xml";
-
-        internal static Config config = new Config(); // Config Class for the Bot
+        
+        internal static Config Config { get; set; } // Config Class for the Bot
 
         internal static DiscordClient Client { get; private set; } // Discord API Client
         
         private static CommandsNextModule Commands { get; set; } // Commands Next Module for interactivity and config
-
-        [XmlElement("Roles")] internal static List<RoleWatch> RolesToWatch = new List<RoleWatch>();
         
         private static readonly ManualResetEvent QuitEvent = new ManualResetEvent(false); // End Signal Watcher
         
@@ -57,7 +54,7 @@ namespace RoleBot
              */
             var clientConfig = new DiscordConfiguration
             {
-                Token = config.Token,
+                Token = Config.Token,
                 TokenType = TokenType.Bot,
 
                 LogLevel = LogLevel.Debug,
@@ -77,7 +74,7 @@ namespace RoleBot
              */
             var commandsConfig = new CommandsNextConfiguration
             {
-                StringPrefix = config.CommandPrefix,
+                StringPrefix = Config.CommandPrefix ?? "r!",
 
                 EnableDms = true,
 
@@ -121,16 +118,15 @@ namespace RoleBot
             
             // Indicates that bot is being terminated
             Client.DebugLogger.LogMessage(LogLevel.Critical, "RoleBot", "End Signal Received Bot Terminating", DateTime.UtcNow);
-            
+
+            Client.DebugLogger.LogMessage(LogLevel.Info, "RoleBot", "Log dump completed, Config file updated", DateTime.UtcNow);
+
             // Updates the config file with latest changes to make them permanent
             await UpdateConfigFile();
             
             // Releases the Log file from the Program
             Log.Close();
             FileStream.Close();
-            
-            Client.DebugLogger.LogMessage(LogLevel.Info, "RoleBot", "Log dump completed, Config file updated",
-                DateTime.Now);
             
             return "Bot done";
         }
@@ -145,10 +141,8 @@ namespace RoleBot
             using (var reader = new StreamReader(ConfigPath))
             {
                 var serializer  = new XmlSerializer(typeof(Config));
-                var rSerializer = new XmlSerializer(typeof(RoleWatch));
                 
-                config = serializer.Deserialize(reader) as Config;
-                RolesToWatch = rSerializer.Deserialize(reader) as List<RoleWatch>;
+                Config = serializer.Deserialize(reader) as Config;
             }
             
             return Task.CompletedTask;
@@ -164,16 +158,16 @@ namespace RoleBot
          */
         private static async Task Reaction_Added(MessageReactionAddEventArgs e)
         {
-            if (!RolesToWatch.Select(r => r.Emoji).ToList().Contains(e.Emoji)) return;
+            if (!Config.RolesToWatch.Select(r => r.Emoji).ToList().Contains(e.Emoji)) return;
             
-            var roleExists = RolesToWatch.Select(r => r.Message).ToList().Contains(e.Message);
+            var roleExists = Config.RolesToWatch.Select(r => r.Message).ToList().Contains(e.Message);
             
             // filters out spare emotes
             if (roleExists)
             {
                 // get the role to assign
                 // select role where emoji is the emoji added
-                var roleToAssign = from roles in RolesToWatch
+                var roleToAssign = from roles in Config.RolesToWatch
                     where roles.Emoji.Equals(e.Emoji)
                     select roles;
                 roleToAssign = roleToAssign.ToList();
@@ -207,20 +201,20 @@ namespace RoleBot
         private static async Task Reaction_Removed(MessageReactionRemoveEventArgs e)
         {
             // increase efficiency by ensuring that emotes that aren't being watched don't trigger unnecessary exceptions
-            if (!RolesToWatch.Select(r => r.Emoji).ToList().Contains(e.Emoji)) return;
+            if (!Config.RolesToWatch.Select(r => r.Emoji).ToList().Contains(e.Emoji)) return;
             
-            var roleExists = RolesToWatch.Select(r => r.Message).ToList().Contains(e.Message);
+            var roleExists = Config.RolesToWatch.Select(r => r.Message).ToList().Contains(e.Message);
             
             if (roleExists)
             {
                 // selects the role that is supposed to be revoked
                 // select role where emoji is emoji removed
-                var roleToRevoke = from roles in RolesToWatch
+                var roleToRevoke = from roles in Config.RolesToWatch
                     where roles.Emoji.Equals(e.Emoji)
                     select roles;
                 roleToRevoke = roleToRevoke.ToList();
                 
-                if (!config.AutoRemoveFlag)
+                if (!Config.AutoRemoveFlag)
                 {
                     // retro actively tries to remove roles (created in case bot goes offline)
                     var guildMembers = roleToRevoke.First().Guild.GetAllMembersAsync().Result;
@@ -265,14 +259,12 @@ namespace RoleBot
             /*
              * Initializes a new XmlSerializer with type config and RoleWatch
              */
-            var serializer = new XmlSerializer(typeof(Config));
-            var rSerializer = new XmlSerializer(typeof(RoleWatch));
+            var serializer = new XmlSerializer(typeof(Config), new[]{typeof(RoleWatch)});
             
             using (var writer = XmlWriter.Create("config.xml", new XmlWriterSettings {Indent = true}))
             {
                 writer.WriteStartDocument();
-                serializer.Serialize(writer, config);
-                rSerializer.Serialize(writer, RolesToWatch);
+                serializer.Serialize(writer, Config);
                 writer.WriteEndDocument();
             }
             
