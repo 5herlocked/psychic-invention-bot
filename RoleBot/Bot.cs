@@ -1,5 +1,6 @@
 ﻿//@author Shardul Vaidya
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -17,12 +18,14 @@ namespace RoleBot
     internal class Bot
     {
         private const string ConfigPath = "config.xml";
-        
-        internal static Config Config { get; set; } // Config Class for the Bot
+
+        internal static Config config = new Config(); // Config Class for the Bot
 
         internal static DiscordClient Client { get; private set; } // Discord API Client
         
         private static CommandsNextModule Commands { get; set; } // Commands Next Module for interactivity and config
+
+        [XmlElement("Roles")] internal static List<RoleWatch> RolesToWatch = new List<RoleWatch>();
         
         private static readonly ManualResetEvent QuitEvent = new ManualResetEvent(false); // End Signal Watcher
         
@@ -54,7 +57,7 @@ namespace RoleBot
              */
             var clientConfig = new DiscordConfiguration
             {
-                Token = Config.Token,
+                Token = config.Token,
                 TokenType = TokenType.Bot,
 
                 LogLevel = LogLevel.Debug,
@@ -74,7 +77,7 @@ namespace RoleBot
              */
             var commandsConfig = new CommandsNextConfiguration
             {
-                StringPrefix = Config.CommandPrefix,
+                StringPrefix = config.CommandPrefix,
 
                 EnableDms = true,
 
@@ -141,8 +144,10 @@ namespace RoleBot
             using (var reader = new StreamReader(ConfigPath))
             {
                 var serializer  = new XmlSerializer(typeof(Config));
+                var rSerializer = new XmlSerializer(typeof(RoleWatch));
                 
-                Config = serializer.Deserialize(reader) as Config;
+                config = serializer.Deserialize(reader) as Config;
+                RolesToWatch = rSerializer.Deserialize(reader) as List<RoleWatch>;
             }
             
             return Task.CompletedTask;
@@ -158,16 +163,16 @@ namespace RoleBot
          */
         private static async Task Reaction_Added(MessageReactionAddEventArgs e)
         {
-            if (!Config.RolesToWatch.Select(r => r.Emoji).ToList().Contains(e.Emoji)) return;
+            if (!RolesToWatch.Select(r => r.Emoji).ToList().Contains(e.Emoji)) return;
             
-            var roleExists = Config.RolesToWatch.Select(r => r.Message).ToList().Contains(e.Message);
+            var roleExists = RolesToWatch.Select(r => r.Message).ToList().Contains(e.Message);
             
             // filters out spare emotes
             if (roleExists)
             {
                 // get the role to assign
                 // select role where emoji is the emoji added
-                var roleToAssign = from roles in Config.RolesToWatch
+                var roleToAssign = from roles in RolesToWatch
                     where roles.Emoji.Equals(e.Emoji)
                     select roles;
                 roleToAssign = roleToAssign.ToList();
@@ -201,20 +206,20 @@ namespace RoleBot
         private static async Task Reaction_Removed(MessageReactionRemoveEventArgs e)
         {
             // increase efficiency by ensuring that emotes that aren't being watched don't trigger unnecessary exceptions
-            if (!Config.RolesToWatch.Select(r => r.Emoji).ToList().Contains(e.Emoji)) return;
+            if (!RolesToWatch.Select(r => r.Emoji).ToList().Contains(e.Emoji)) return;
             
-            var roleExists = Config.RolesToWatch.Select(r => r.Message).ToList().Contains(e.Message);
+            var roleExists = RolesToWatch.Select(r => r.Message).ToList().Contains(e.Message);
             
             if (roleExists)
             {
                 // selects the role that is supposed to be revoked
                 // select role where emoji is emoji removed
-                var roleToRevoke = from roles in Config.RolesToWatch
+                var roleToRevoke = from roles in RolesToWatch
                     where roles.Emoji.Equals(e.Emoji)
                     select roles;
                 roleToRevoke = roleToRevoke.ToList();
                 
-                if (!Config.AutoRemoveFlag)
+                if (!config.AutoRemoveFlag)
                 {
                     // retro actively tries to remove roles (created in case bot goes offline)
                     var guildMembers = roleToRevoke.First().Guild.GetAllMembersAsync().Result;
@@ -259,12 +264,14 @@ namespace RoleBot
             /*
              * Initializes a new XmlSerializer with type config and RoleWatch
              */
-            var serializer = new XmlSerializer(typeof(Config), new[]{typeof(RoleWatch)});
+            var serializer = new XmlSerializer(typeof(Config));
+            var rSerializer = new XmlSerializer(typeof(RoleWatch));
             
             using (var writer = XmlWriter.Create("config.xml", new XmlWriterSettings {Indent = true}))
             {
                 writer.WriteStartDocument();
-                serializer.Serialize(writer, Config);
+                serializer.Serialize(writer, config);
+                rSerializer.Serialize(writer, RolesToWatch);
                 writer.WriteEndDocument();
             }
             

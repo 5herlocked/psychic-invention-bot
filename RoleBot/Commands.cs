@@ -38,7 +38,7 @@ namespace RoleBot
             [Description("Role to watch")] DiscordRole role)
         {
             // adds to list of roles being watched
-            Bot.Config.RolesToWatch.Add(new RoleWatch(context.Guild, channel, message, emoji, role));
+            Bot.config.RolesToWatch.Add(new RoleWatch(context.Guild, channel, message, emoji, role));
 
             await context.TriggerTypingAsync();
             
@@ -88,7 +88,7 @@ namespace RoleBot
             [Description("Role that should be stopped watching")]
             DiscordRole role)
         {
-            var toRemove = (from roles in Bot.Config.RolesToWatch
+            var toRemove = (from roles in Bot.config.RolesToWatch
                 where roles.Role.Equals(role) && context.Guild.Equals(roles.Guild) select roles).First();
 
             if (toRemove == null)
@@ -97,7 +97,7 @@ namespace RoleBot
                 await context.RespondAsync("Looks like this role is not being watched");
             }
             
-            Bot.Config.RolesToWatch.Remove(toRemove);
+            Bot.config.RolesToWatch.Remove(toRemove);
             
             await context.TriggerTypingAsync();
             
@@ -118,7 +118,7 @@ namespace RoleBot
     [Group("admin")]
     [Description("Admin Commands")]
     [Hidden]
-    [RequirePermissions(Permissions.Administrator)]
+    [RequireOwner]
     internal class AdminCommands
     {
         /* ToggleAutoRemove Method
@@ -129,15 +129,15 @@ namespace RoleBot
          * Mainly present to let pre-existing servers implement this bot without needing to have all its users react to
          * a message.
          */
-        [Command("autoremove"), Description("Toggles the auto-removal of members who haven't reacted"), RequirePermissions(Permissions.Administrator)]
+        [Command("autoremove"), Description("Toggles the auto-removal of members who haven't reacted"), RequireOwner]
         public async Task ToggleAutoRemove(CommandContext context)
         {
-            Bot.Config.AutoRemoveFlag = !Bot.Config.AutoRemoveFlag;
+            Bot.config.AutoRemoveFlag = !Bot.config.AutoRemoveFlag;
             
             var embed = new DiscordEmbedBuilder
             {
                 Title = "Toggle Auto Remove",
-                Description = $"The Bot will {(Bot.Config.AutoRemoveFlag ? "no longer" : "")} revoke member roles automatically"
+                Description = $"The Bot will {(Bot.config.AutoRemoveFlag ? "no longer" : "")} revoke member roles automatically"
             };
 
             await context.TriggerTypingAsync();
@@ -148,10 +148,10 @@ namespace RoleBot
         /* ChangePrefix Method
          * This method changes the prefix that the Discord API observes to consider a message a command
          */
-        [Command("changeprefix"), Description("Changes the Commands prefix"), RequirePermissions(Permissions.Administrator)]
+        [Command("changeprefix"), Description("Changes the Commands prefix"), RequireOwner]
         public async Task ChangePrefix(CommandContext context, string newPrefix)
         {
-            Bot.Config.CommandPrefix = newPrefix;
+            Bot.config.CommandPrefix = newPrefix;
 
             var embed = new DiscordEmbedBuilder
             {

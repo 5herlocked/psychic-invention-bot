@@ -11,11 +11,7 @@ namespace RoleBot
         
         public bool AutoRemoveFlag { get; set; }
 
+        [XmlElement("Prefix")]
         public string CommandPrefix { get; set; }
-        
-        [XmlElement("Roles", typeof(RoleWatch))]
-        public List<RoleWatch> RolesToWatch { get; set; }
-        
-        public Config () { RolesToWatch = new List<RoleWatch>(); }
     }
 }
