@@ -5,6 +5,7 @@ using System.Xml.Serialization;
 
 namespace RoleBot
 {
+    [XmlInclude(typeof(List<RoleWatch>))]
     public class Config
     {
         public string Token { get; set; }
@@ -14,6 +15,7 @@ namespace RoleBot
         [XmlElement("Prefix")]
         public string CommandPrefix { get; set; }
 
+        [XmlElement("Role")]
         public List<RoleWatch> RolesToWatch { get; set; }
 
         public Config () { RolesToWatch = new List<RoleWatch>(); }

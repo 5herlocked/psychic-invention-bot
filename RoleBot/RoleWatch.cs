@@ -9,7 +9,7 @@ using DSharpPlus.Entities;
 
 namespace RoleBot
 {
-    public class RoleWatch : IXmlSerializable
+    public class RoleWatch
     {
         public DiscordGuild Guild { get; set; }
         
@@ -42,23 +42,20 @@ namespace RoleBot
             Role = Guild.GetRole(UInt64.Parse(role));
         }
 
-        public XmlSchema GetSchema()
-        {
-            return null;
-        }
-        
         /*
          * Custom implementation of the Read method in IXmlSerializable to cater to a descriptive yet consise
          * XML config file
          */
         public void ReadXml(XmlReader reader)
         {
+            reader.ReadStartElement();
             var guild = reader.ReadElementString("Guild");
             var channel = reader.ReadElementString("Channel");
             var message = reader.ReadElementString("Message");
             var emoji = reader.ReadElementString("Emoji");
             var role = reader.ReadElementString("RoleID");
-            
+            reader.ReadEndElement();
+
             Guild = Bot.Client.GetGuildAsync(UInt64.Parse(guild)).Result;
             Channel = Guild.GetChannel(UInt64.Parse(channel));
             Message = Channel.GetMessageAsync(UInt64.Parse(message)).Result;

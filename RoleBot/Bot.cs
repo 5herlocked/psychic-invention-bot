@@ -256,16 +256,14 @@ namespace RoleBot
          */
         internal static Task UpdateConfigFile()
         {
-            /*
-             * Initializes a new XmlSerializer with type config and RoleWatch
-             */
-            var serializer = new XmlSerializer(typeof(Config), new[]{typeof(RoleWatch)});
-            
             using (var writer = XmlWriter.Create("config.xml", new XmlWriterSettings {Indent = true}))
             {
-                writer.WriteStartDocument();
+                /*
+                 * Initializes a new XmlSerializer with type config and RoleWatch
+                 */
+                var serializer = new XmlSerializer(typeof(Config));
+
                 serializer.Serialize(writer, Config);
-                writer.WriteEndDocument();
             }
             
             return Task.CompletedTask;
