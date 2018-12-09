@@ -5,8 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Xml;
-using System.Xml.Serialization;
+using Newtonsoft.Json;
 
 using DSharpPlus;
 using DSharpPlus.CommandsNext;
@@ -16,7 +15,7 @@ namespace RoleBot
 {
     internal class Bot
     {
-        private const string ConfigPath = "config.xml";
+        private const string ConfigPath = "config.json";
         
         internal static Config Config { get; set; } // Config Class for the Bot
 
@@ -74,7 +73,7 @@ namespace RoleBot
              */
             var commandsConfig = new CommandsNextConfiguration
             {
-                StringPrefix = Config.CommandPrefix ?? "r!",
+                StringPrefix = Config.CommandPrefix,
 
                 EnableDms = true,
 
@@ -151,7 +150,7 @@ namespace RoleBot
                 // get the role to assign
                 // select role where emoji is the emoji added
                 var roleToAssign = from roles in Config.RolesToWatch
-                    where roles.Emoji.Equals(e.Emoji)
+                                   where roles.Emoji.Equals(e.Emoji)
                     select roles;
                 roleToAssign = roleToAssign.ToList();
                 
@@ -193,8 +192,8 @@ namespace RoleBot
                 // selects the role that is supposed to be revoked
                 // select role where emoji is emoji removed
                 var roleToRevoke = from roles in Config.RolesToWatch
-                    where roles.Emoji.Equals(e.Emoji)
-                    select roles;
+                                   where roles.Emoji.Equals(e.Emoji)
+                                   select roles;
                 roleToRevoke = roleToRevoke.ToList();
                 
                 if (!Config.AutoRemoveFlag)
@@ -237,36 +236,39 @@ namespace RoleBot
         /* Refresh Config Method
         *
         * Used to load the configuration into the assembly
-        * Gets each <Role> Node from config.xml and deserializes them into RoleWatch Objects
         */
-        internal static Task RefreshConfig ()
+        internal async static Task RefreshConfig ()
         {
             using (var reader = new StreamReader(ConfigPath))
-            {
-                var serializer = new XmlSerializer(typeof(Config));
+                Config = JsonConvert.DeserializeObject<Config>(await reader.ReadToEndAsync(), new RoleWatchJsonSerializer(typeof(RoleWatch)));
 
-                Config = serializer.Deserialize(reader) as Config;
-            }
-
-            return Task.CompletedTask;
+            //Config = new Config();
+            //try
+            //{
+            //    using (var reader = new StreamReader(ConfigPath))
+            //        Config = JsonConvert.DeserializeObject<Config>(await reader.ReadToEndAsync());
+            //} catch (Exception)
+            //{
+            //    Console.WriteLine("Config is Empty, Using Default Settings");
+            //    Config = new Config();
+            //}
         }
 
         /*
          * Updates the config file for permanent storage of settings and roles to watch
          */
-        internal static Task UpdateConfigFile()
+        internal async static Task UpdateConfigFile()
         {
-            using (var writer = XmlWriter.Create("config.xml", new XmlWriterSettings {Indent = true}))
-            {
-                /*
-                 * Initializes a new XmlSerializer with type config and RoleWatch
-                 */
-                var serializer = new XmlSerializer(typeof(Config));
-
-                serializer.Serialize(writer, Config);
-            }
-            
-            return Task.CompletedTask;
+            using (var writer = new StreamWriter(ConfigPath))
+                await writer.WriteLineAsync(JsonConvert.SerializeObject(Config, Formatting.Indented, new RoleWatchJsonSerializer(typeof(RoleWatch))));
+            //try
+            //{
+            //    using (var writer = new StreamWriter(LogPath))
+            //        await writer.WriteLineAsync(JsonConvert.SerializeObject(Config));
+            //} catch (Exception)
+            //{
+            //    Console.WriteLine("Config is Null");
+            //}
         }
     }
 }
