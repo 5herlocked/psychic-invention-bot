@@ -140,9 +140,9 @@ namespace RoleBot
          */
         private static async Task Reaction_Added(MessageReactionAddEventArgs e)
         {
-            if (!Config.RolesToWatch.Select(r => r.Emoji).ToList().Contains(e.Emoji)) return;
+            if (!Config.RolesToWatch.Select(r => r.GetEmoji()).ToList().Contains(e.Emoji)) return;
             
-            var roleExists = Config.RolesToWatch.Select(r => r.Message).ToList().Contains(e.Message);
+            var roleExists = Config.RolesToWatch.Select(r => r.GetMessage()).ToList().Contains(e.Message);
             
             // filters out spare emotes
             if (roleExists)
@@ -150,22 +150,22 @@ namespace RoleBot
                 // get the role to assign
                 // select role where emoji is the emoji added
                 var roleToAssign = from roles in Config.RolesToWatch
-                                   where roles.Emoji.Equals(e.Emoji)
+                                   where roles.GetEmoji().Equals(e.Emoji)
                     select roles;
                 roleToAssign = roleToAssign.ToList();
                 
                 // get members who've reacted from the users who've reacted
                 var membersReacted = from discordUser in e.Message.GetReactionsAsync(e.Emoji).Result
-                    select roleToAssign.First().Guild.GetMemberAsync(discordUser.Id).Result;
+                    select roleToAssign.First().GetGuild().GetMemberAsync(discordUser.Id).Result;
                 
                 // retroactively assigns roles
                 foreach (var member in membersReacted)
                 {
                     // optimisation to reduce iterations if member already has the role
-                    if(member.Roles.Contains(roleToAssign.First().Role)) continue;
+                    if(member.Roles.Contains(roleToAssign.First().GetRole())) continue;
                     
-                    await member.GrantRoleAsync(roleToAssign.First().Role);
-                    await LogPrinter.Role_Assigned(e, member, roleToAssign.First().Role);
+                    await member.GrantRoleAsync(roleToAssign.First().GetRole());
+                    await LogPrinter.Role_Assigned(e, member, roleToAssign.First().GetRole());
                 }
             }
         }
@@ -183,27 +183,27 @@ namespace RoleBot
         private static async Task Reaction_Removed(MessageReactionRemoveEventArgs e)
         {
             // increase efficiency by ensuring that emotes that aren't being watched don't trigger unnecessary exceptions
-            if (!Config.RolesToWatch.Select(r => r.Emoji).ToList().Contains(e.Emoji)) return;
+            if (!Config.RolesToWatch.Select(r => r.GetEmoji()).ToList().Contains(e.Emoji)) return;
             
-            var roleExists = Config.RolesToWatch.Select(r => r.Message).ToList().Contains(e.Message);
+            var roleExists = Config.RolesToWatch.Select(r => r.GetMessage()).ToList().Contains(e.Message);
             
             if (roleExists)
             {
                 // selects the role that is supposed to be revoked
                 // select role where emoji is emoji removed
                 var roleToRevoke = from roles in Config.RolesToWatch
-                                   where roles.Emoji.Equals(e.Emoji)
+                                   where roles.GetEmoji().Equals(e.Emoji)
                                    select roles;
                 roleToRevoke = roleToRevoke.ToList();
                 
                 if (!Config.AutoRemoveFlag)
                 {
                     // retro actively tries to remove roles (created in case bot goes offline)
-                    var guildMembers = roleToRevoke.First().Guild.GetAllMembersAsync().Result;
+                    var guildMembers = roleToRevoke.First().GetGuild().GetAllMembersAsync().Result;
                     
                     // gets all the members reacted then gets members from the guild
                     var membersReacted = from discordUser in e.Message.GetReactionsAsync(e.Emoji).Result
-                        select roleToRevoke.First().Guild.GetMemberAsync(discordUser.Id).Result;
+                        select roleToRevoke.First().GetGuild().GetMemberAsync(discordUser.Id).Result;
 
                     // filters members to remove
                     // select member from guild members where reacted members doesn't contain the member
@@ -215,10 +215,10 @@ namespace RoleBot
                     foreach (var member in membersToRemove)
                     {
                         // optimisation to reduce iterations if member doesn't have the role
-                        if (!member.Roles.Contains(roleToRevoke.First().Role)) continue;
+                        if (!member.Roles.Contains(roleToRevoke.First().GetRole())) continue;
 
-                        await member.RevokeRoleAsync(roleToRevoke.First().Role);
-                        await LogPrinter.Role_Revoked(e, member, roleToRevoke.First().Role);
+                        await member.RevokeRoleAsync(roleToRevoke.First().GetRole());
+                        await LogPrinter.Role_Revoked(e, member, roleToRevoke.First().GetRole());
                     }   
                 }
                 /*
@@ -226,9 +226,9 @@ namespace RoleBot
                  */
                 else
                 {
-                    var member = roleToRevoke.First().Guild.GetMemberAsync(e.User.Id).Result;
-                    await member.RevokeRoleAsync(roleToRevoke.First().Role);
-                    await LogPrinter.Role_Revoked(e, member, roleToRevoke.First().Role);
+                    var member = roleToRevoke.First().GetGuild().GetMemberAsync(e.User.Id).Result;
+                    await member.RevokeRoleAsync(roleToRevoke.First().GetRole());
+                    await LogPrinter.Role_Revoked(e, member, roleToRevoke.First().GetRole());
                 }
             }
         }
@@ -240,7 +240,7 @@ namespace RoleBot
         internal async static Task RefreshConfig ()
         {
             using (var reader = new StreamReader(ConfigPath))
-                Config = JsonConvert.DeserializeObject<Config>(await reader.ReadToEndAsync(), new RoleWatchJsonSerializer(typeof(RoleWatch)));
+                Config = JsonConvert.DeserializeObject<Config>(await reader.ReadToEndAsync());
 
             //Config = new Config();
             //try
@@ -260,7 +260,7 @@ namespace RoleBot
         internal async static Task UpdateConfigFile()
         {
             using (var writer = new StreamWriter(ConfigPath))
-                await writer.WriteLineAsync(JsonConvert.SerializeObject(Config, Formatting.Indented, new RoleWatchJsonSerializer(typeof(RoleWatch))));
+                await writer.WriteLineAsync(JsonConvert.SerializeObject(Config, Formatting.Indented));
             //try
             //{
             //    using (var writer = new StreamWriter(LogPath))

@@ -51,7 +51,6 @@ namespace RoleBot
              * Role: <RoleName>
              * Emoji: <Emoji>
              * Channel: <Channel>
-             * Message: <Message + Author>
              */
             description.AppendLine(Formatter.Bold("Role: ")).AppendLine(role.Name).AppendLine()
                 .AppendLine(Formatter.Bold("Emoji: ")).AppendLine(emoji).AppendLine()
@@ -88,7 +87,7 @@ namespace RoleBot
             DiscordRole role)
         {
             var toRemove = (from roles in Bot.Config.RolesToWatch
-                            where roles.Role.Equals(role) && context.Guild.Equals(roles.Guild) select roles).First();
+                            where roles.GetRole().Equals(role) && context.Guild.Equals(roles.GetGuild()) select roles).First();
 
             if (toRemove == null)
             {
