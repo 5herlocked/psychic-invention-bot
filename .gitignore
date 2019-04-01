@@ -268,3 +268,4 @@ __pycache__/
 # Publish objects
 **/Publish
 Publish.*
+/TextFile1.json

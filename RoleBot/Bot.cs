@@ -42,8 +42,10 @@ namespace RoleBot
                 args.Cancel = true;
             };
 
+
             await RefreshConfig();
             
+
             /*
              * Creates the Discord Configuration and instantiates the DiscordClient if the Config File is not empty
              *
@@ -240,7 +242,7 @@ namespace RoleBot
         internal async static Task RefreshConfig ()
         {
             using (var reader = new StreamReader(ConfigPath))
-                Config = JsonConvert.DeserializeObject<Config>(await reader.ReadToEndAsync());
+                Config = JsonConvert.DeserializeObject<Config>((await reader.ReadToEndAsync()).Trim());
 
             //Config = new Config();
             //try
@@ -260,7 +262,7 @@ namespace RoleBot
         internal async static Task UpdateConfigFile()
         {
             using (var writer = new StreamWriter(ConfigPath))
-                await writer.WriteLineAsync(JsonConvert.SerializeObject(Config, Formatting.Indented));
+                await writer.WriteAsync(JsonConvert.SerializeObject(Config, Formatting.Indented));
             //try
             //{
             //    using (var writer = new StreamWriter(LogPath))

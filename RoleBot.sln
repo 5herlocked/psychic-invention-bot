@@ -7,7 +7,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RoleBot", "RoleBot\RoleBot.
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{F9946926-8EAE-4D33-8BAC-217E62646BD7}"
 	ProjectSection(SolutionItems) = preProject
-		config.xml = config.xml
+		TextFile1.json = TextFile1.json
 	EndProjectSection
 EndProject
 Global

@@ -8,30 +8,26 @@ namespace RoleBot
 {
     public class RoleWatch
     {
-        private UInt64 guild;
+        public DiscordGuild GetGuild() => Bot.Client.GetGuildAsync(Guild).Result;
+        public void SetGuild(DiscordGuild value) => Guild = value.Id;
 
-        public DiscordGuild GetGuild() => Bot.Client.GetGuildAsync(guild).Result;
-        public void SetGuild(DiscordGuild value) => guild = value.Id;
+        public DiscordChannel GetChannel() => GetGuild().GetChannel(Channel);
+        public void SetChannel(DiscordChannel value) => Channel = value.Id;
 
-        private UInt64 channel;
+        public DiscordMessage GetMessage() => GetChannel().GetMessageAsync(Message).Result;
+        public void SetMessage(DiscordMessage value) => Message = value.Id;
 
-        public DiscordChannel GetChannel() => GetGuild().GetChannel(channel);
-        public void SetChannel(DiscordChannel value) => channel = value.Id;
+        public DiscordEmoji GetEmoji() => DiscordEmoji.FromName(Bot.Client, Emoji);
+        public void SetEmoji(DiscordEmoji value) => Emoji = value.GetDiscordName();
 
-        private UInt64 message;
+        public ulong Guild { get; set; }
+        public ulong Channel { get; set; }
+        public ulong Message { get; set; }
+        public string Emoji { get; set; }
+        public ulong Role { get; set; }
 
-        public DiscordMessage GetMessage() => GetChannel().GetMessageAsync(message).Result;
-        public void SetMessage(DiscordMessage value) => message = value.Id;
-
-        private string emoji;
-
-        public DiscordEmoji GetEmoji() => DiscordEmoji.FromName(Bot.Client, emoji);
-        public void SetEmoji(DiscordEmoji value) => emoji = value.GetDiscordName();
-
-        private UInt64 role;
-
-        public DiscordRole GetRole() => GetGuild().GetRole(role);
-        public void SetRole(DiscordRole value) => role = value.Id;
+        public DiscordRole GetRole() => GetGuild().GetRole(Role);
+        public void SetRole(DiscordRole value) => Role = value.Id;
 
         public RoleWatch() { }
 
