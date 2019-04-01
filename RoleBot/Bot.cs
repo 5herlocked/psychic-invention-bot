@@ -243,17 +243,6 @@ namespace RoleBot
         {
             using (var reader = new StreamReader(ConfigPath))
                 Config = JsonConvert.DeserializeObject<Config>((await reader.ReadToEndAsync()).Trim());
-
-            //Config = new Config();
-            //try
-            //{
-            //    using (var reader = new StreamReader(ConfigPath))
-            //        Config = JsonConvert.DeserializeObject<Config>(await reader.ReadToEndAsync());
-            //} catch (Exception)
-            //{
-            //    Console.WriteLine("Config is Empty, Using Default Settings");
-            //    Config = new Config();
-            //}
         }
 
         /*
@@ -263,14 +252,6 @@ namespace RoleBot
         {
             using (var writer = new StreamWriter(ConfigPath))
                 await writer.WriteAsync(JsonConvert.SerializeObject(Config, Formatting.Indented));
-            //try
-            //{
-            //    using (var writer = new StreamWriter(LogPath))
-            //        await writer.WriteLineAsync(JsonConvert.SerializeObject(Config));
-            //} catch (Exception)
-            //{
-            //    Console.WriteLine("Config is Null");
-            //}
         }
     }
 }
