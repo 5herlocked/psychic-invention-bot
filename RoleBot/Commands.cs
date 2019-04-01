@@ -78,7 +78,7 @@ namespace RoleBot
          *
          * The Bot also responds to confirm that the role is no longer being watched
          *
-         * Finally, it updates it config file so that the removal is permanent.
+         * Finally, it updates the config file so that the removal is permanent.
          */
         [Command("removerole"), Description("Stops an existing Role from being watched"),
          RequirePermissions(Permissions.ManageRoles)]
@@ -116,7 +116,7 @@ namespace RoleBot
     [Group("admin")]
     [Description("Admin Commands")]
     [Hidden]
-    [RequirePermissions(Permissions.Administrator)]
+    [RequireUserPermissions(Permissions.Administrator)]
     internal class AdminCommands
     {
         /* ToggleAutoRemove Method
