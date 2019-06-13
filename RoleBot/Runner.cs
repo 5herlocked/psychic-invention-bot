@@ -3,7 +3,7 @@
 using System;
 using System.IO;
 using System.Threading.Tasks;
-
+using DSharpPlus;
 using Newtonsoft.Json;
 
 namespace RoleBot
@@ -19,7 +19,24 @@ namespace RoleBot
                 Console.WriteLine("Please enter the Discord API Token from the Developer Portal: ");
                 tempConfig.Token = Console.ReadLine().Trim();
 
-                Console.WriteLine("Do you want to auto-remove users who have roles and have not reacted (No is default, not recommended for large servers)?");
+                var clientConfig = new DiscordConfiguration
+                {
+                    Token = tempConfig.Token,
+                    TokenType = TokenType.Bot,
+
+                    LogLevel = LogLevel.Debug,
+                    UseInternalLogHandler = true
+                };
+                try
+                {
+                    Bot.Client = new DiscordClient(clientConfig);
+                } catch (Exception)
+                {
+                    Console.WriteLine("It seems your API token is invalid, terminating setup");
+                    Environment.Exit(0);
+                }
+
+                Console.WriteLine("Do you want to auto-remove users who have roles and have not reacted (not recommended for severs with previously assigned roles)?");
                 Console.WriteLine("Answer in (Y/N)");
                 switch (Console.ReadLine().Trim().ToLower())
                 {
@@ -34,14 +51,27 @@ namespace RoleBot
                         break;
                 }
 
+                do
+                {
+                    Console.WriteLine("What do you want the command prefix to be without any spaces.");
+                    var tempPrefix = Console.ReadLine().Trim();
+                    if (tempPrefix.Contains(" "))
+                    {
+                        Console.WriteLine("This Prefix contains spaces, please enter a prefix with no spaces");
+                        continue;
+                    }
+                    else
+                        tempConfig.CommandPrefix = Console.ReadLine().Trim();
+                } while (tempConfig.CommandPrefix == null);
+
                 Console.WriteLine("What do you want the command prefix to be without any spaces.");
-                tempConfig.CommandPrefix = Console.ReadLine().Trim();
+                
 
                 using (var configwriter = new StreamWriter("config.json"))
                     await configwriter.WriteAsync(JsonConvert.SerializeObject(tempConfig));
             }
             var bot = Bot.RunBotAsync();
-            var unused = await bot;
+            _ = await bot;
         }
     }
 }

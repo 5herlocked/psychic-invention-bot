@@ -10,6 +10,7 @@ using Newtonsoft.Json;
 using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.EventArgs;
+using System.Collections.Generic;
 
 namespace RoleBot
 {
@@ -19,7 +20,7 @@ namespace RoleBot
         
         internal static Config Config { get; set; } // Config Class for the Bot
 
-        internal static DiscordClient Client { get; private set; } // Discord API Client
+        internal static DiscordClient Client { get; set; } // Discord API Client
         
         private static CommandsNextModule Commands { get; set; } // Commands Next Module for interactivity and config
         
@@ -65,7 +66,8 @@ namespace RoleBot
             /*
              * Instantiates the client
              */
-            Client = new DiscordClient(clientConfig);
+             if (Client == null)
+                Client = new DiscordClient(clientConfig);
 
             
             /*
@@ -151,10 +153,7 @@ namespace RoleBot
             {
                 // get the role to assign
                 // select role where emoji is the emoji added
-                var roleToAssign = from roles in Config.RolesToWatch
-                                   where roles.GetEmoji().Equals(e.Emoji)
-                    select roles;
-                roleToAssign = roleToAssign.ToList();
+                var roleToAssign = GetRoleWatches(e).ToList();
                 
                 // get members who've reacted from the users who've reacted
                 var membersReacted = from discordUser in e.Message.GetReactionsAsync(e.Emoji).Result
@@ -193,10 +192,7 @@ namespace RoleBot
             {
                 // selects the role that is supposed to be revoked
                 // select role where emoji is emoji removed
-                var roleToRevoke = from roles in Config.RolesToWatch
-                                   where roles.GetEmoji().Equals(e.Emoji)
-                                   select roles;
-                roleToRevoke = roleToRevoke.ToList();
+                var roleToRevoke = GetRoleWatches(e).ToList();
                 
                 if (!Config.AutoRemoveFlag)
                 {
@@ -235,8 +231,21 @@ namespace RoleBot
             }
         }
 
+        private static IEnumerable<RoleWatch> GetRoleWatches (MessageReactionAddEventArgs addE)
+        {
+            return from roles in Config.RolesToWatch
+                   where roles.GetEmoji().Equals(addE.Emoji)
+                   select roles;
+        }
+
+        private static IEnumerable<RoleWatch> GetRoleWatches (MessageReactionRemoveEventArgs removeE)
+        {
+            return from roles in Config.RolesToWatch
+                   where roles.GetEmoji().Equals(removeE.Emoji)
+                   select roles;
+        }
+
         /* Refresh Config Method
-        *
         * Used to load the configuration into the assembly
         */
         internal async static Task RefreshConfig ()
