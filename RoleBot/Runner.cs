@@ -14,6 +14,7 @@ namespace RoleBot
         {
             if(!File.Exists("config.json"))
             {
+                // Gets Discord API and puts it into config
                 var tempConfig = new Config();
                 Console.WriteLine("There is no config file found, this setup will create one for the bot to function: ");
                 Console.WriteLine("Please enter the Discord API Token from the Developer Portal: ");
@@ -27,6 +28,8 @@ namespace RoleBot
                     LogLevel = LogLevel.Debug,
                     UseInternalLogHandler = true
                 };
+
+                // Terminates bot if the API Token is wrong
                 try
                 {
                     Bot.Client = new DiscordClient(clientConfig);
@@ -36,6 +39,7 @@ namespace RoleBot
                     Environment.Exit(0);
                 }
 
+                // Sets options
                 Console.WriteLine("Do you want to auto-remove users who have roles and have not reacted (not recommended for severs with previously assigned roles)?");
                 Console.WriteLine("Answer in (Y/N)");
                 switch (Console.ReadLine().Trim().ToLower())
@@ -51,6 +55,7 @@ namespace RoleBot
                         break;
                 }
 
+                // Sets the command prefix for the bot to catch
                 do
                 {
                     Console.WriteLine("What do you want the command prefix to be without any spaces.");
@@ -62,11 +67,9 @@ namespace RoleBot
                     }
                     else
                         tempConfig.CommandPrefix = Console.ReadLine().Trim();
-                } while (tempConfig.CommandPrefix == null);
+                } while (tempConfig.CommandPrefix == null);                
 
-                Console.WriteLine("What do you want the command prefix to be without any spaces.");
-                
-
+                // writes to config file for storage
                 using (var configwriter = new StreamWriter("config.json"))
                     await configwriter.WriteAsync(JsonConvert.SerializeObject(tempConfig));
             }

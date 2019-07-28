@@ -219,9 +219,7 @@ namespace RoleBot
                         await LogPrinter.Role_Revoked(e, member, roleToRevoke.First().GetRole());
                     }   
                 }
-                /*
-                 * If AutoRemoval of Members is off
-                 */
+                // If autoremoval of members if off
                 else
                 {
                     var member = roleToRevoke.First().GetGuild().GetMemberAsync(e.User.Id).Result;
