@@ -12,8 +12,9 @@ namespace RoleBot
 
         public string CommandPrefix { get; set; }
 
-        public List<RoleWatch> RolesToWatch { get; set; }
+        // TODO implement HashMap to make this cleaner
+        public HashSet<RoleWatch> RolesToWatch { get; set; }
 
-        public Config () { RolesToWatch = new List<RoleWatch>(); }
+        public Config() { RolesToWatch = new HashSet<RoleWatch>(); }
     }
 }
