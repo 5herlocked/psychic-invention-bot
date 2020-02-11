@@ -60,7 +60,8 @@ namespace RoleBot
                 TokenType = TokenType.Bot,
 
                 LogLevel = LogLevel.Debug,
-                UseInternalLogHandler = true
+                UseInternalLogHandler = true,
+                AutoReconnect = true,
             };
 
             /*
