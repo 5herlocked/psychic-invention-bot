@@ -3,8 +3,8 @@
 FROM mcr.microsoft.com/dotnet/runtime:2.1 AS base
 WORKDIR /app
 
-ENV DiscordToken=
-ENV CommandPrefix=
+ENV DiscordToken=ODMyMDE4Njc5MjAxNjYwOTQ5.YHdrxw.skKuZrH3VimM5YD4ZY-jylgjvPM
+ENV CommandPrefix=r!
 
 FROM mcr.microsoft.com/dotnet/sdk:2.1 AS build
 WORKDIR /src

@@ -1,8 +1,10 @@
 // @author Shardul Vaidya
 
 using System;
+using System.IO;
 using System.Threading.Tasks;
 using DSharpPlus;
+using Newtonsoft.Json;
 
 namespace RoleBot
 {
@@ -10,46 +12,55 @@ namespace RoleBot
     {
         internal static async Task Main()
         {
+            var configPath = "config.json";
             var tempConfig = new Config();
-            var discordToken = Environment.GetEnvironmentVariable("DiscordToken");
-
-            if (discordToken == null)
+            if (File.Exists(configPath))
             {
-                // No token found throw error
-                Environment.Exit(0);
+                using (var reader = new StreamReader(configPath))
+                    tempConfig = JsonConvert.DeserializeObject<Config>((await reader.ReadToEndAsync()).Trim());
             }
-
-            tempConfig.Token = discordToken;
-
-            var clientConfig = new DiscordConfiguration
+            else
             {
-                Token = tempConfig.Token,
-                TokenType = TokenType.Bot,
+                var discordToken = Environment.GetEnvironmentVariable("DiscordToken");
 
-                LogLevel = LogLevel.Debug,
-                UseInternalLogHandler = true
-            };
+                if (discordToken == null)
+                {
+                    // No token found throw error
+                    Environment.Exit(0);
+                }
 
-            // Terminates bot if the API Token is wrong
-            try
-            {
-                Bot.Client = new DiscordClient(clientConfig);
+                tempConfig.Token = discordToken;
+
+                var clientConfig = new DiscordConfiguration
+                {
+                    Token = tempConfig.Token,
+                    TokenType = TokenType.Bot,
+
+                    LogLevel = LogLevel.Debug,
+                    UseInternalLogHandler = true
+                };
+
+                // Terminates bot if the API Token is wrong
+                try
+                {
+                    Bot.Client = new DiscordClient(clientConfig);
+                }
+                catch (Exception)
+                {
+                    Console.WriteLine("It seems your API token is invalid, terminating setup");
+                    Environment.Exit(0);
+                }
+
+                tempConfig.AutoRemoveFlag = false;
+
+                var commandPrefix = Environment.GetEnvironmentVariable("CommandPrefix");
+                if (commandPrefix == null)
+                {
+                    // Default value
+                    commandPrefix = "r!";
+                }
+                tempConfig.CommandPrefix = commandPrefix;
             }
-            catch (Exception)
-            {
-                Console.WriteLine("It seems your API token is invalid, terminating setup");
-                Environment.Exit(0);
-            }
-
-            tempConfig.AutoRemoveFlag = false;
-
-            var commandPrefix = Environment.GetEnvironmentVariable("CommandPrefix");
-            if (commandPrefix == null)
-            {
-                // Default value
-                commandPrefix = "r!";
-            }
-            tempConfig.CommandPrefix = commandPrefix;
 
             Bot.Config = tempConfig;
 
