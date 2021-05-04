@@ -64,7 +64,7 @@ namespace RoleBot
             
             await LogPrinter.Role_Created(role, emoji);
             await context.RespondAsync("", false, embed);
-            await Bot.UpdateConfigFile();
+            // await Bot.UpdateConfigFile();
         }
         
         /* RemoveRole Method
@@ -107,7 +107,7 @@ namespace RoleBot
 
             await LogPrinter.Role_Removed(role);
             await context.RespondAsync("", false, embed);
-            await Bot.UpdateConfigFile();
+            // await Bot.UpdateConfigFile();
             
         }
     }
@@ -140,7 +140,7 @@ namespace RoleBot
 
             await context.TriggerTypingAsync();
             await context.RespondAsync("", false, embed);
-            await Bot.UpdateConfigFile();
+            // await Bot.UpdateConfigFile();
         }
 
         /* ChangePrefix Method
@@ -159,7 +159,7 @@ namespace RoleBot
 
             await context.TriggerTypingAsync();
             await context.RespondAsync("", false, embed);
-            await Bot.UpdateConfigFile();
+            // await Bot.UpdateConfigFile();
         }
     }
 }

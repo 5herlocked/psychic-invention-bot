@@ -24,10 +24,11 @@ namespace RoleBot
         }
 
         // Client has Guild Available and prints the Guild Name
-        internal static async Task Guild_Available(GuildCreateEventArgs e)
+        internal static Task Guild_Available(GuildCreateEventArgs e)
         {
-            await Bot.RefreshConfig();
+            // await Bot.RefreshConfig();
             e.Client.DebugLogger.LogMessage(LogLevel.Info, "RoleBot", $"Guild available: {e.Guild.Name}", DateTime.Now);
+            return Task.CompletedTask;
         }
 
         // Client has erred and cannot act

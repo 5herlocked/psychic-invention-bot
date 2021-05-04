@@ -4,7 +4,11 @@
       "commandName": "Project"
     },
     "Docker": {
-      "commandName": "Docker"
+      "commandName": "Docker",
+      "environmentVariables": {
+        "CommandPrefix": "r!",
+        "DiscordToken": "ODMyMDE4Njc5MjAxNjYwOTQ5.YHdrxw.skKuZrH3VimM5YD4ZY-jylgjvPM"
+      }
     }
   }
 }

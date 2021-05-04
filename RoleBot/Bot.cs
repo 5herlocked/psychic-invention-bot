@@ -16,7 +16,7 @@ namespace RoleBot
 {
     internal class Bot
     {
-        private const string ConfigPath = "config.json";
+        // private const string ConfigPath = "config.json";
         
         internal static Config Config { get; set; } // Config Class for the Bot
 
@@ -44,7 +44,7 @@ namespace RoleBot
             };
 
 
-            await RefreshConfig();
+            //await RefreshConfig();
             
 
             /*
@@ -126,7 +126,7 @@ namespace RoleBot
             Client.DebugLogger.LogMessage(LogLevel.Info, "RoleBot", "Log dump completed, Config file updated", DateTime.UtcNow);
 
             // Updates the config file with latest changes to make them permanent
-            await UpdateConfigFile();
+            // await UpdateConfigFile();
             
             // Releases the Log file from the Program
             Log.Close();
@@ -247,19 +247,19 @@ namespace RoleBot
         /* Refresh Config Method
         * Used to load the configuration into the assembly
         */
-        internal async static Task RefreshConfig ()
-        {
-            using (var reader = new StreamReader(ConfigPath))
-                Config = JsonConvert.DeserializeObject<Config>((await reader.ReadToEndAsync()).Trim());
-        }
+        //internal async static Task RefreshConfig ()
+        //{
+        //    using (var reader = new StreamReader(ConfigPath))
+        //        Config = JsonConvert.DeserializeObject<Config>((await reader.ReadToEndAsync()).Trim());
+        //}
 
         /*
          * Updates the config file for permanent storage of settings and roles to watch
          */
-        internal async static Task UpdateConfigFile()
-        {
-            using (var writer = new StreamWriter(ConfigPath))
-                await writer.WriteAsync(JsonConvert.SerializeObject(Config, Formatting.Indented));
-        }
+        //internal async static Task UpdateConfigFile()
+        //{
+        //    using (var writer = new StreamWriter(ConfigPath))
+        //        await writer.WriteAsync(JsonConvert.SerializeObject(Config, Formatting.Indented));
+        //}
     }
 }

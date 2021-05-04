@@ -269,3 +269,6 @@ __pycache__/
 **/Publish
 Publish.*
 /TextFile1.json
+
+# environment variables
+*.env

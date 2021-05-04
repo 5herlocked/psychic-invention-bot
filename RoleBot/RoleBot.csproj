@@ -9,7 +9,7 @@
     <Version>3.0.0</Version>
     <Authors>Shardul Vaidya</Authors>
     <Company>Shardul Vaidya</Company>
-    <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+    <DockerDefaultTargetOS>Windows</DockerDefaultTargetOS>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -32,6 +32,7 @@
 
     <ItemGroup>
         <None Remove="App.config" />
+        <None Remove="dockerlocal.Designer.env" />
     </ItemGroup>
 
 </Project>
