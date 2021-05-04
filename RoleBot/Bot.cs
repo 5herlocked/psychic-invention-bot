@@ -249,6 +249,10 @@ namespace RoleBot
         */
         internal async static Task RefreshConfig()
         {
+            if (!File.Exists(ConfigPath))
+            {
+                File.CreateText(ConfigPath);
+            }
             using (var reader = new StreamReader(ConfigPath))
                 Config = JsonConvert.DeserializeObject<Config>((await reader.ReadToEndAsync()).Trim());
         }
@@ -258,6 +262,10 @@ namespace RoleBot
          */
         internal async static Task UpdateConfigFile()
         {
+            if (!File.Exists(ConfigPath))
+            {
+                File.CreateText(ConfigPath);
+            }
             using (var writer = new StreamWriter(ConfigPath))
                 await writer.WriteAsync(JsonConvert.SerializeObject(Config, Formatting.Indented));
         }
